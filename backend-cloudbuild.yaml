@@ -1,0 +1,39 @@
+steps:
+# Step 1: Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=asia-northeast1-docker.pkg.dev/ai-trading-system-470613/cloud-run-source-deploy/auto-trade-backend:$BUILD_ID'
+  - '--build-arg=OPENAI_API_KEY=${_OPENAI_API_KEY}'
+  - '--build-arg=DATABASE_URL=${_DATABASE_URL}'
+  - '.'
+
+# Step 2: Push the container image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'asia-northeast1-docker.pkg.dev/ai-trading-system-470613/cloud-run-source-deploy/auto-trade-backend:$BUILD_ID']
+
+# Step 3: Deploy the container image to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'auto-trade-backend'
+  - '--image=asia-northeast1-docker.pkg.dev/ai-trading-system-470613/cloud-run-source-deploy/auto-trade-backend:$BUILD_ID'
+  - '--region=asia-northeast1'
+  - '--platform=managed'
+  - '--allow-unauthenticated'
+  - '--set-env-vars=OPENAI_API_KEY=${_OPENAI_API_KEY},DATABASE_URL=${_DATABASE_URL}'
+  - '--memory=2Gi'
+  - '--cpu=1'
+  - '--max-instances=3'
+  - '--timeout=600s'
+
+# Specify the image to be pushed
+images:
+- 'asia-northeast1-docker.pkg.dev/ai-trading-system-470613/cloud-run-source-deploy/auto-trade-backend:$BUILD_ID'
+
+# Define substitutions (secrets should be configured in Cloud Build settings)
+substitutions:
+  _OPENAI_API_KEY: '${_OPENAI_API_KEY}'
+  _DATABASE_URL: '${_DATABASE_URL}'
