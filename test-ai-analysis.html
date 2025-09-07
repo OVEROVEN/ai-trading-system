@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8">🤖 AI Analysis Test</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test API Connection</h2>
+            <div class="flex gap-4 mb-4">
+                <input type="text" id="symbolInput" value="AAPL" 
+                       class="px-4 py-2 bg-gray-700 rounded text-white" placeholder="Symbol">
+                <button onclick="testAnalysis()" 
+                        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded">
+                    Test Analysis
+                </button>
+                <button onclick="testHealthCheck()" 
+                        class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded">
+                    Health Check
+                </button>
+            </div>
+            <div id="status" class="text-sm text-gray-400"></div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Results</h2>
+            <pre id="results" class="bg-gray-900 p-4 rounded overflow-auto text-sm"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://auto-trade-backend-610357573971.asia-northeast1.run.app';
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        function showResults(data) {
+            document.getElementById('results').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        async function testHealthCheck() {
+            updateStatus('🔍 Testing API health...');
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                updateStatus(`✅ Health check: ${response.status}`);
+                showResults(data);
+            } catch (error) {
+                updateStatus(`❌ Health check failed: ${error.message}`);
+                showResults({ error: error.message });
+            }
+        }
+        
+        async function testAnalysis() {
+            const symbol = document.getElementById('symbolInput').value || 'AAPL';
+            updateStatus(`🤖 Testing AI analysis for ${symbol}...`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/analyze/${symbol}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'Authorization': 'Bearer your_token_here' // Add if you have a token
+                    },
+                    body: JSON.stringify({
+                        period: '3mo',
+                        include_ai: true,
+                        include_patterns: true,
+                        language: 'en'
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                updateStatus(`✅ Analysis complete for ${symbol}`);
+                showResults(data);
+                
+                // Log AI analysis specifically
+                if (data.ai_analysis) {
+                    console.log('🤖 AI Analysis:', data.ai_analysis);
+                } else {
+                    console.log('⚠️ No AI analysis in response');
+                }
+                
+            } catch (error) {
+                updateStatus(`❌ Analysis failed: ${error.message}`);
+                showResults({ error: error.message });
+            }
+        }
+        
+        // Auto test health on load
+        window.onload = () => {
+            testHealthCheck();
+        };
+    </script>
+</body>
+</html>
