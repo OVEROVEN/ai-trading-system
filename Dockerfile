@@ -34,5 +34,5 @@ ENV LOG_LEVEL=INFO
 ENV PORT=8080
 EXPOSE 8080
 
-# 啟動命令 - 使用完整版本支援股票分析功能
-CMD exec python -m uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1 --log-level info
+# 啟動命令 - 使用minimal版本支援基本股票分析功能（避免依賴問題）
+CMD exec python -m uvicorn src.api.main_minimal:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1 --log-level info
