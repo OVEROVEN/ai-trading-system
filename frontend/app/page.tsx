@@ -13,13 +13,13 @@ import { AuthButton } from '../components/AuthButton';
 import { RedemptionCode } from '../components/RedemptionCode';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useModal } from '../contexts/ModalContext';
-import { analyzeStock } from '../lib/api';
+import { analyzeStock, AnalysisResponse } from '../lib/api';
 
 export default function TradingDashboard() {
   const { t, language } = useLanguage();
   const { isAuthModalOpen } = useModal();
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
-  const [analysisData, setAnalysisData] = useState(null);
+  const [analysisData, setAnalysisData] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSymbolChange = (symbol: string) => {
