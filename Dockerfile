@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 複製並安裝依賴
-COPY requirements-ultra-minimal.txt .
-RUN pip install --no-cache-dir -r requirements-ultra-minimal.txt
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
 
 # 複製應用代碼
 COPY src/ ./src/
@@ -34,5 +34,5 @@ ENV LOG_LEVEL=INFO
 ENV PORT=8080
 EXPOSE 8080
 
-# 啟動命令 - 使用ultra-minimal版本避免視覺化依賴問題
-CMD exec python -m uvicorn src.api.main_minimal:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1 --log-level info
+# 啟動命令 - 使用完整版本支援股票分析功能
+CMD exec python -m uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1 --log-level info
