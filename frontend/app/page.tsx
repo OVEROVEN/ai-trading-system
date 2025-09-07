@@ -38,6 +38,15 @@ export default function TradingDashboard() {
       setAnalysisData(data);
     } catch (error) {
       console.error('Analysis failed:', error);
+      // Set error state for AI Analysis component
+      setAnalysisData({
+        symbol,
+        error: true,
+        ai_analysis: {
+          error: '分析失敗，請稍後再試',
+          login_required: false
+        }
+      });
     } finally {
       setLoading(false);
     }

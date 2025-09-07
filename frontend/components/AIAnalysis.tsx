@@ -90,6 +90,13 @@ export function AIAnalysis({ symbol, analysisData, loading }: AIAnalysisProps) {
           <div className="text-4xl mb-4">🎯</div>
           <p className="text-slate-400">{t('generating_analysis')}</p>
         </div>
+      ) : analysisData.ai_analysis?.error && !analysisData.ai_analysis?.login_required ? (
+        <div className="text-center py-8">
+          <div className="text-4xl mb-4">❌</div>
+          <h4 className="text-lg font-semibold text-white mb-2">分析暫時無法使用</h4>
+          <p className="text-slate-400 mb-4">{analysisData.ai_analysis.error}</p>
+          <p className="text-sm text-slate-500">請檢查股票代碼或稍後再試</p>
+        </div>
       ) : analysisData.ai_analysis?.login_required ? (
         <div className="text-center py-8">
           <div className="text-4xl mb-4">🔐</div>
