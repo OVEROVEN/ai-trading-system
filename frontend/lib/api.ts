@@ -85,6 +85,7 @@ export async function analyzeStock(
         ...(getAuthHeaders())
       },
       body: JSON.stringify({
+        symbol: symbol,
         period: options.period || '3mo',
         include_ai: options.include_ai || false,
         include_patterns: options.include_patterns !== false, // default true

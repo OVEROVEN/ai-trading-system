@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import API_URL from '../lib/api';
+import { API_BASE } from '../lib/api';
 
 interface UserCredits {
   bonus_credits: number;
@@ -40,7 +40,7 @@ export function RedemptionCode() {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/api/redemption/credits`, {
+      const response = await fetch(`${API_BASE}/api/redemption/credits`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -60,7 +60,7 @@ export function RedemptionCode() {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/api/redemption/history`, {
+      const response = await fetch(`${API_BASE}/api/redemption/history`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -95,7 +95,7 @@ export function RedemptionCode() {
     setMessage('');
 
     try {
-      const response = await fetch(`${API_URL}/api/redemption/redeem`, {
+      const response = await fetch(`${API_BASE}/api/redemption/redeem`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
