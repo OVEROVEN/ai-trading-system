@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # Local PostgreSQL Database
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: trading_postgres_dev
+    environment:
+      POSTGRES_DB: trading_db_local
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trading_db_local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - trading_network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: trading_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    networks:
+      - trading_network
+
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trading_backend_dev
+    env_file:
+      - .env.local
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/trading_db_local
+      - REDIS_URL=redis://redis:6379
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=true
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    networks:
+      - trading_network
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trading_frontend_dev
+    env_file:
+      - .env.local
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - API_URL=http://localhost:8000
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+    networks:
+      - trading_network
+
+volumes:
+  postgres_dev_data:
+    name: trading_postgres_dev_data
+  redis_dev_data:
+    name: trading_redis_dev_data
+
+networks:
+  trading_network:
+    name: trading_dev_network
+    driver: bridge
