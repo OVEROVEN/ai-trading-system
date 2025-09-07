@@ -41,7 +41,13 @@ export default function TradingDashboard() {
       // Set error state for AI Analysis component
       setAnalysisData({
         symbol,
-        error: true,
+        current_price: 0,
+        price_change: 0,
+        price_change_percent: 0,
+        technical_indicators: {},
+        patterns: {},
+        signals: [],
+        timestamp: new Date().toISOString(),
         ai_analysis: {
           error: '分析失敗，請稍後再試',
           login_required: false
