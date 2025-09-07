@@ -44,6 +44,7 @@ yfinance==0.2.28
 
 # 科學計算 (基礎)
 scipy==1.13.1
+scikit-learn==1.5.1
 
 # 日誌
 loguru==0.7.2
