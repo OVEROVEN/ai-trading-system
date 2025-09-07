@@ -1,0 +1,27 @@
+# 圖表服務專用依賴
+# 基礎框架
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.8.2
+
+# 數據處理
+pandas==2.2.2
+numpy==1.26.4
+
+# 可視化核心
+plotly==5.17.0
+kaleido==0.2.1
+matplotlib==3.9.1
+seaborn==0.13.2
+mplfinance==0.12.10b0
+
+# 圖像處理
+Pillow==10.4.0
+
+# 基礎工具
+python-dotenv==1.0.1
+requests==2.32.3
+aiofiles==23.2.1
+
+# 日誌
+loguru==0.7.2

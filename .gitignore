@@ -1,0 +1,70 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# API Keys and credentials
+**/config/secrets.js
+**/config/keys.js
+api-keys.json
+credentials.json
+service-account.json
+
+# OpenAI API Keys
+openai_api_key*
+OPENAI_API_KEY*
+
+# Database credentials
+database.json
+db-config.js
+
+# Google Cloud credentials
+gcp-credentials.json
+service-account-*.json
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production builds
+*.tgz
+*.tar.gz
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+logs
+*.log
+
+# Cloud Build
+cloudbuild.yaml
+.gcloudignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/

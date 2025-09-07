@@ -1,0 +1,27 @@
+# 測試部署 - 極簡版本
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 只安裝最基本的依賴
+RUN pip install fastapi==0.111.0 uvicorn[standard]==0.30.1
+
+# 創建一個簡單的測試API
+RUN echo 'from fastapi import FastAPI\n\
+app = FastAPI(title="Auto Trade Test API")\n\
+\n\
+@app.get("/")\n\
+def root():\n\
+    return {"status": "ok", "message": "AI Trading Test API is running"}\n\
+\n\
+@app.get("/health")\n\
+def health():\n\
+    return {"status": "healthy", "service": "auto_trade_test"}\n\
+\n\
+@app.get("/test-redemption")\n\
+def test_redemption():\n\
+    return {"redemption_system": "ready", "test": "passed"}\n\
+' > test_main.py
+
+EXPOSE $PORT
+CMD ["sh", "-c", "uvicorn test_main:app --host 0.0.0.0 --port ${PORT:-8000}"]

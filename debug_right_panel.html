@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Right Panel Updates</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1e222d; color: #d1d4dc; }
+        .test-section { margin: 20px 0; padding: 15px; background: #2a2e39; border-radius: 8px; }
+        .test-button { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .result-box { margin-top: 10px; padding: 10px; background: #131722; border-radius: 4px; border-left: 4px solid #007bff; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-dot.loading { background: #ffc107; animation: pulse 1s infinite; }
+        .status-dot.ready { background: #28a745; }
+        .status-dot.error { background: #dc3545; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        #log { height: 200px; overflow-y: scroll; background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Right Panel Data Update Debug Tool</h1>
+    
+    <div class="test-section">
+        <h3>1. API Endpoint Testing</h3>
+        <button class="test-button" onclick="testStockData('AAPL')">Test AAPL Data</button>
+        <button class="test-button" onclick="testStockData('2330.TW')">Test 2330.TW Data</button>
+        <button class="test-button" onclick="testStockData('TSLA')">Test TSLA Data</button>
+        <button class="test-button" onclick="testAIRecommendations('2330.TW')">Test AI Recommendations</button>
+        <div id="apiResults" class="result-box"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Symbol Switching Simulation</h3>
+        <button class="test-button" onclick="simulateSymbolChange('AAPL')">Switch to AAPL</button>
+        <button class="test-button" onclick="simulateSymbolChange('2330.TW')">Switch to 2330.TW</button>
+        <button class="test-button" onclick="simulateSymbolChange('GOOGL')">Switch to GOOGL</button>
+        <button class="test-button" onclick="simulateSymbolChange('2317.TW')">Switch to 2317.TW</button>
+        
+        <h4>Current Symbol: <span id="currentSymbol">--</span></h4>
+        
+        <h4>Mock Data Panels:</h4>
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1; background: #343a40; padding: 10px; border-radius: 4px;">
+                <h5>Stock Data <span class="status-dot loading" id="stockStatus"></span></h5>
+                <div id="stockContent">Loading...</div>
+            </div>
+            <div style="flex: 1; background: #343a40; padding: 10px; border-radius: 4px;">
+                <h5>AI Recommendations <span class="status-dot loading" id="aiStatus"></span></h5>
+                <div id="aiContent">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Debug Log</h3>
+        <button class="test-button" onclick="clearLog()">Clear Log</button>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let currentSymbol = 'AAPL';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function testStockData(symbol) {
+            log(`Testing stock data for ${symbol}...`);
+            const resultDiv = document.getElementById('apiResults');
+            
+            try {
+                const response = await fetch(`/api/stock-data/${symbol}`);
+                log(`API response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Data received: ${JSON.stringify(data)}`);
+                    resultDiv.innerHTML = `
+                        <strong>${symbol} Stock Data:</strong><br>
+                        Price: $${data.current_price}<br>
+                        Change: ${data.change_percent}%<br>
+                        Volume: ${data.volume?.toLocaleString()}<br>
+                        RSI: ${data.rsi}<br>
+                        Market Open: ${data.market_open}
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    log(`API error: ${errorText}`);
+                    resultDiv.innerHTML = `<span style="color: #dc3545;">Error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                log(`Fetch error: ${error.message}`);
+                resultDiv.innerHTML = `<span style="color: #dc3545;">Network Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testAIRecommendations(symbol) {
+            log(`Testing AI recommendations for ${symbol}...`);
+            const resultDiv = document.getElementById('apiResults');
+            
+            try {
+                const response = await fetch(`/api/ai-recommendations/${symbol}`);
+                log(`AI API response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`AI data received: ${JSON.stringify(data)}`);
+                    
+                    let recommendations = [];
+                    if (data.buy_zone) recommendations.push('Buy Zone');
+                    if (data.sell_zone) recommendations.push('Sell Zone');
+                    if (data.hold_recommendation) recommendations.push('Hold Recommendation');
+                    
+                    resultDiv.innerHTML = `
+                        <strong>${symbol} AI Recommendations:</strong><br>
+                        ${recommendations.length > 0 ? recommendations.join(', ') : 'No recommendations'}
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    log(`AI API error: ${errorText}`);
+                    resultDiv.innerHTML = `<span style="color: #dc3545;">AI Error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                log(`AI fetch error: ${error.message}`);
+                resultDiv.innerHTML = `<span style="color: #dc3545;">AI Network Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function simulateSymbolChange(newSymbol) {
+            log(`Simulating symbol change to ${newSymbol}...`);
+            currentSymbol = newSymbol;
+            document.getElementById('currentSymbol').textContent = newSymbol;
+            
+            // 更新狀態為載入中
+            document.getElementById('stockStatus').className = 'status-dot loading';
+            document.getElementById('aiStatus').className = 'status-dot loading';
+            document.getElementById('stockContent').innerHTML = 'Loading...';
+            document.getElementById('aiContent').innerHTML = 'Loading...';
+            
+            // 模擬載入股票數據
+            try {
+                const response = await fetch(`/api/stock-data/${newSymbol}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('stockStatus').className = 'status-dot ready';
+                    document.getElementById('stockContent').innerHTML = `
+                        Price: $${data.current_price}<br>
+                        Change: ${data.change_percent}%<br>
+                        RSI: ${data.rsi}
+                    `;
+                    log(`Stock data loaded successfully for ${newSymbol}`);
+                } else {
+                    throw new Error(`Status ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('stockStatus').className = 'status-dot error';
+                document.getElementById('stockContent').innerHTML = 'Error loading data';
+                log(`Stock data failed for ${newSymbol}: ${error.message}`);
+            }
+            
+            // 模擬載入AI建議
+            try {
+                const response = await fetch(`/api/ai-recommendations/${newSymbol}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('aiStatus').className = 'status-dot ready';
+                    
+                    let content = '';
+                    if (data.buy_zone) content += 'Buy Zone<br>';
+                    if (data.sell_zone) content += 'Sell Zone<br>';
+                    if (data.hold_recommendation) content += 'Hold Recommendation<br>';
+                    
+                    document.getElementById('aiContent').innerHTML = content || 'No recommendations';
+                    log(`AI recommendations loaded successfully for ${newSymbol}`);
+                } else {
+                    throw new Error(`Status ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('aiStatus').className = 'status-dot error';
+                document.getElementById('aiContent').innerHTML = 'AI service unavailable';
+                log(`AI recommendations failed for ${newSymbol}: ${error.message}`);
+            }
+        }
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            log('Debug tool loaded');
+            simulateSymbolChange('AAPL');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<testsuites id="" name="" tests="10" failures="10" skipped="0" errors="0" time="36.510691">
+<testsuite name="debug-login.spec.js" timestamp="2025-09-04T14:15:52.905Z" hostname="chromium" tests="2" failures="2" skipped="0" time="0.019" errors="0">
+<testcase name="Login and Registration › should be able to register a new user and log in" classname="debug-login.spec.js" time="0.011">
+<failure message="debug-login.spec.js:4:3 should be able to register a new user and log in" type="FAILURE">
+<![CDATA[  [chromium] › debug-login.spec.js:4:3 › Login and Registration › should be able to register a new user and log in 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Login and Registration › should initiate Google login" classname="debug-login.spec.js" time="0.008">
+<failure message="debug-login.spec.js:39:3 should initiate Google login" type="FAILURE">
+<![CDATA[  [chromium] › debug-login.spec.js:39:3 › Login and Registration › should initiate Google login ────
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="debug-login.spec.js" timestamp="2025-09-04T14:15:52.905Z" hostname="firefox" tests="2" failures="2" skipped="0" time="0.028" errors="0">
+<testcase name="Login and Registration › should be able to register a new user and log in" classname="debug-login.spec.js" time="0.019">
+<failure message="debug-login.spec.js:4:3 should be able to register a new user and log in" type="FAILURE">
+<![CDATA[  [firefox] › debug-login.spec.js:4:3 › Login and Registration › should be able to register a new user and log in 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/firefox-1490/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Login and Registration › should initiate Google login" classname="debug-login.spec.js" time="0.009">
+<failure message="debug-login.spec.js:39:3 should initiate Google login" type="FAILURE">
+<![CDATA[  [firefox] › debug-login.spec.js:39:3 › Login and Registration › should initiate Google login ─────
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/firefox-1490/firefox/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="debug-login.spec.js" timestamp="2025-09-04T14:15:52.905Z" hostname="webkit" tests="2" failures="2" skipped="0" time="0.021" errors="0">
+<testcase name="Login and Registration › should be able to register a new user and log in" classname="debug-login.spec.js" time="0.011">
+<failure message="debug-login.spec.js:4:3 should be able to register a new user and log in" type="FAILURE">
+<![CDATA[  [webkit] › debug-login.spec.js:4:3 › Login and Registration › should be able to register a new user and log in 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/webkit-2203/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Login and Registration › should initiate Google login" classname="debug-login.spec.js" time="0.01">
+<failure message="debug-login.spec.js:39:3 should initiate Google login" type="FAILURE">
+<![CDATA[  [webkit] › debug-login.spec.js:39:3 › Login and Registration › should initiate Google login ──────
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/webkit-2203/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="debug-login.spec.js" timestamp="2025-09-04T14:15:52.905Z" hostname="Mobile Chrome" tests="2" failures="2" skipped="0" time="0.024" errors="0">
+<testcase name="Login and Registration › should be able to register a new user and log in" classname="debug-login.spec.js" time="0.011">
+<failure message="debug-login.spec.js:4:3 should be able to register a new user and log in" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › debug-login.spec.js:4:3 › Login and Registration › should be able to register a new user and log in 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Login and Registration › should initiate Google login" classname="debug-login.spec.js" time="0.013">
+<failure message="debug-login.spec.js:39:3 should initiate Google login" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › debug-login.spec.js:39:3 › Login and Registration › should initiate Google login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="debug-login.spec.js" timestamp="2025-09-04T14:15:52.905Z" hostname="Mobile Safari" tests="2" failures="2" skipped="0" time="0.019" errors="0">
+<testcase name="Login and Registration › should be able to register a new user and log in" classname="debug-login.spec.js" time="0.01">
+<failure message="debug-login.spec.js:4:3 should be able to register a new user and log in" type="FAILURE">
+<![CDATA[  [Mobile Safari] › debug-login.spec.js:4:3 › Login and Registration › should be able to register a new user and log in 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/webkit-2203/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Login and Registration › should initiate Google login" classname="debug-login.spec.js" time="0.009">
+<failure message="debug-login.spec.js:39:3 should initiate Google login" type="FAILURE">
+<![CDATA[  [Mobile Safari] › debug-login.spec.js:39:3 › Login and Registration › should initiate Google login 
+
+    Error: browserType.launch: Executable doesn't exist at /home/louis255202/.cache/ms-playwright/webkit-2203/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

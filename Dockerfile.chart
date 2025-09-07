@@ -1,0 +1,27 @@
+# 圖表服務 - 專門處理可視化
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 安裝系統依賴 (圖像處理需要)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安裝圖表依賴
+COPY requirements-chart.txt .
+RUN pip install --no-cache-dir -r requirements-chart.txt
+
+# 複製圖表服務代碼
+COPY src/services/chart_service.py ./src/services/chart_service.py
+COPY src/visualization/ ./src/visualization/
+
+# 設置Python路徑
+ENV PYTHONPATH=/app
+
+# 圖表服務端口
+EXPOSE 8001
+
+# 啟動圖表服務
+CMD ["python", "-m", "uvicorn", "src.services.chart_service:app", "--host", "0.0.0.0", "--port", "8001"]

@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI策略分析儀表板 (增強版) - 技術形態與買進訊號</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0d1421, #1e2328);
+            color: #e3e6ea;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e2328, #2a2e39);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #2196f3;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #2196f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .symbol-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .symbol-input input {
+            padding: 12px 15px;
+            border: 2px solid #454f5b;
+            border-radius: 8px;
+            background: #2a2e39;
+            color: #e3e6ea;
+            font-size: 1rem;
+            width: 200px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .symbol-input input:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        }
+        
+        .btn-primary {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #2196f3, #00d4ff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 按鈕載入狀態 */
+        .btn-loading {
+            pointer-events: none;
+        }
+        
+        .btn-loading .btn-text {
+            opacity: 0;
+        }
+        
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 20px;
+            padding: 20px;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .chart-section, .signals-panel, .chat-panel, .backtest-panel {
+            background: #1e2328;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid #2a2e39;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #454f5b;
+        }
+        
+        .stock-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stock-symbol {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2196f3;
+        }
+        
+        .stock-price {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .price-change {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .price-up { background: #dcfce7; color: #166534; }
+        .price-down { background: #fef2f2; color: #991b1b; }
+        
+        .chart-container {
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #131722;
+            margin-bottom: 20px;
+        }
+        
+        .analysis-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .signals-panel {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2196f3;
+        }
+        
+        .signal-item {
+            background: #2a2e39;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #2196f3;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .pattern-type {
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        
+        .confidence {
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .signal-details {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #b3b7bc;
+        }
+        
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .status-indicator.connected {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.connecting {
+            background: #ff9800;
+            animation: spin 1s linear infinite;
+        }
+        
+        .status-indicator.error {
+            background: #f44336;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #454f5b;
+            border-radius: 8px;
+            background: #131722;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 12px;
+            max-width: 85%;
+            animation: messageSlide 0.3s ease-out;
+        }
+        
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .message.user {
+            background: #2196f3;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message.assistant {
+            background: #2a2e39;
+            color: #e3e6ea;
+        }
+        
+        .message-content {
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #454f5b;
+            border-radius: 8px;
+            background: #2a2e39;
+            color: #e3e6ea;
+            resize: none;
+            height: 60px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #454f5b;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            border-bottom-color: #2196f3;
+            color: #2196f3;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 增強的進度指示器 */
+        .loading-enhanced {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 30px;
+            text-align: center;
+            color: #2196f3;
+        }
+        
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .progress-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(33, 150, 243, 0.2);
+            border-top: 4px solid #2196f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .progress-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2196f3;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+        
+        .progress-dot:nth-child(1) { animation-delay: -0.32s; }
+        .progress-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        
+        .progress-text {
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .progress-details {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        /* 錯誤和成功訊息增強 */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .alert-error {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #dcfce7, #d1fae5);
+            color: #166534;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            color: #92400e;
+            border: 1px solid #fed7aa;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            color: #0d47a1;
+            border: 1px solid #81d4fa;
+        }
+        
+        .retry-button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: auto;
+            transition: all 0.2s;
+        }
+        
+        .retry-button:hover {
+            background: #1976d2;
+            transform: scale(1.05);
+        }
+        
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        
+        .tooltip:hover::before {
+            opacity: 1;
+            visibility: visible;
+            bottom: calc(100% + 5px);
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 1fr 450px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .analysis-section {
+                order: -1;
+            }
+            
+            .chat-panel {
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+            
+            .chat-panel {
+                height: 400px;
+            }
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .input-group label {
+            color: #e3e6ea;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #454f5b;
+            border-radius: 6px;
+            background: #2a2e39;
+            color: #e3e6ea;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+        
+        .backtest-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .performance-metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+        }
+        
+        .backtest-results {
+            background: #2a2e39;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-chart-line"></i> AI策略分析儀表板 (增強版)</h1>
+        <p>技術形態識別 × OpenAI策略顧問 × 回測驗證 - 增強用戶體驗</p>
+        
+        <div class="symbol-input">
+            <input type="text" id="symbolInput" placeholder="輸入股票代號 (例：AAPL, 2330.TW)" value="AAPL">
+            <button class="btn-primary" onclick="analyzeStock()">
+                <span class="btn-text"><i class="fas fa-search"></i> 分析</span>
+            </button>
+            <button class="btn-primary" onclick="clearAnalysis()">
+                <span class="btn-text"><i class="fas fa-refresh"></i> 清除</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- 圖表與分析區 -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <div class="stock-info">
+                    <div class="stock-symbol" id="stockSymbol">-</div>
+                    <div class="stock-price" id="stockPrice">$0.00</div>
+                    <div class="price-change" id="priceChange">0.00%</div>
+                </div>
+                <div id="analysisTime">等待分析...</div>
+            </div>
+            
+            <!-- TradingView圖表 -->
+            <div class="chart-container">
+                <div id="tradingview_widget" style="width: 100%; height: 100%; background: #131722; border-radius: 8px;">
+                    <div class="loading-enhanced">
+                        <div class="progress-container">
+                            <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 15px; color: #2196f3;"></i>
+                            <div class="progress-text">請輸入股票代號開始分析</div>
+                            <div class="progress-details">支援美股 (AAPL) 和台股 (2330.TW)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 分析標籤頁 -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('signals')">
+                    <i class="fas fa-signal"></i> 技術訊號
+                </div>
+                <div class="tab" onclick="switchTab('indicators')">
+                    <i class="fas fa-chart-bar"></i> 技術指標
+                </div>
+                <div class="tab" onclick="switchTab('backtest')">
+                    <i class="fas fa-history"></i> 回測結果
+                </div>
+            </div>
+            
+            <!-- 技術訊號內容 -->
+            <div id="signals-content" class="tab-content active">
+                <div id="patternSignals">
+                    <div class="loading-enhanced">
+                        <div class="progress-container">
+                            <div class="progress-spinner"></div>
+                            <div class="progress-text">等待技術形態分析</div>
+                            <div class="progress-details">分析K線形態、支撐阻力位</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 技術指標內容 -->
+            <div id="indicators-content" class="tab-content">
+                <div id="technicalIndicators">
+                    <div class="loading-enhanced">
+                        <div class="progress-container">
+                            <div class="progress-dots">
+                                <div class="progress-dot"></div>
+                                <div class="progress-dot"></div>
+                                <div class="progress-dot"></div>
+                            </div>
+                            <div class="progress-text">等待技術指標計算</div>
+                            <div class="progress-details">計算RSI、MACD、移動平均線</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 回測結果內容 -->
+            <div id="backtest-content" class="tab-content">
+                <div class="backtest-controls">
+                    <div class="input-group">
+                        <label for="startDate">開始日期</label>
+                        <input type="date" id="startDate" class="tooltip" data-tooltip="回測開始時間，建議選擇至少3個月前">
+                    </div>
+                    <div class="input-group">
+                        <label for="endDate">結束日期</label>
+                        <input type="date" id="endDate" class="tooltip" data-tooltip="回測結束時間，通常選擇今天">
+                    </div>
+                    <div class="input-group">
+                        <label for="minConfidence">最小信心度 (%)</label>
+                        <input type="number" id="minConfidence" value="65" min="50" max="100" 
+                               class="tooltip" data-tooltip="只有達到此信心度的訊號才會進場，越高越保守">
+                    </div>
+                    <div class="input-group">
+                        <label for="initialCapital">初始資金 ($)</label>
+                        <input type="number" id="initialCapital" value="100000" min="10000" 
+                               class="tooltip" data-tooltip="回測開始的模擬投資金額">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="runBacktest()" style="width: 100%;">
+                    <span class="btn-text"><i class="fas fa-play"></i> 執行回測</span>
+                </button>
+                <div id="backtestResults">
+                    <div class="loading-enhanced">
+                        <div class="progress-container">
+                            <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px; color: #2196f3;"></i>
+                            <div class="progress-text">準備回測</div>
+                            <div class="progress-details">設定參數後點擊執行回測</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI聊天與策略分析區 -->
+        <div class="analysis-section">
+            <!-- AI策略聊天 -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <div class="panel-title">
+                        <i class="fas fa-robot"></i> AI策略顧問
+                    </div>
+                    <div class="chat-status">
+                        <div class="status-indicator" id="chatStatus"></div>
+                        <span id="chatStatusText">未連接</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn-primary" id="startChatBtn" onclick="startChat()">
+                        <span class="btn-text">
+                            <i class="fas fa-comments"></i> 開始對話
+                        </span>
+                    </button>
+                    <button class="btn-primary" id="resetChatBtn" onclick="resetChat()" style="background: #666;">
+                        <span class="btn-text">
+                            <i class="fas fa-redo"></i> 重置
+                        </span>
+                    </button>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-content">👋 歡迎使用AI策略顧問！
+
+我是您的專業投資分析師，專精於：
+• 技術形態分析 (箱型、楔型、三角形、旗型)
+• 買進時機判斷
+• 風險管理建議
+• 策略回測評估
+
+請先分析一檔股票，然後點擊「開始對話」!</div>
+                        <div class="message-time">系統訊息</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <textarea id="chatInput" placeholder="問我任何關於投資策略的問題..." disabled></textarea>
+                    <button class="btn-primary" onclick="sendMessage()" id="sendBtn" disabled>
+                        <span class="btn-text">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 綜合分析摘要 -->
+            <div class="signals-panel">
+                <div class="panel-title">
+                    <i class="fas fa-chart-pie"></i> 綜合分析摘要
+                </div>
+                <div id="analysisSummary">
+                    <div class="loading-enhanced">
+                        <div class="progress-container">
+                            <div class="progress-spinner"></div>
+                            <div class="progress-text">等待分析結果</div>
+                            <div class="progress-details">綜合技術指標和AI建議</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    
+    <script>
+        // 全局變量
+        let currentSymbol = '';
+        let currentChatSession = null;
+        let currentWidget = null;
+        let isAnalyzing = false;
+        
+        // API基礎URL
+        const API_BASE = 'http://localhost:8000';
+        
+        // UI狀態管理
+        const UIState = {
+            updateChatStatus: function(status, text) {
+                const statusEl = document.getElementById('chatStatus');
+                const textEl = document.getElementById('chatStatusText');
+                
+                statusEl.className = 'status-indicator ' + status;
+                textEl.textContent = text;
+            },
+            
+            setButtonLoading: function(buttonId, loading) {
+                const btn = document.getElementById(buttonId);
+                if (loading) {
+                    btn.classList.add('btn-loading');
+                    btn.disabled = true;
+                } else {
+                    btn.classList.remove('btn-loading');
+                    btn.disabled = false;
+                }
+            },
+            
+            showAlert: function(message, type = 'info', containerId = null, showRetry = false, retryCallback = null) {
+                const alertHtml = `
+                    <div class="alert alert-${type}">
+                        <i class="fas fa-${this.getIconForType(type)}"></i>
+                        <span>${message}</span>
+                        ${showRetry ? `<button class="retry-button" onclick="${retryCallback}()">重試</button>` : ''}
+                    </div>
+                `;
+                
+                if (containerId) {
+                    document.getElementById(containerId).innerHTML = alertHtml;
+                } else {
+                    // 可以添加全局通知系統
+                    console.log(type.toUpperCase() + ': ' + message);
+                }
+            },
+            
+            getIconForType: function(type) {
+                const icons = {
+                    'error': 'exclamation-triangle',
+                    'success': 'check-circle',
+                    'warning': 'exclamation-circle',
+                    'info': 'info-circle'
+                };
+                return icons[type] || 'info-circle';
+            }
+        };
+        
+        // 初始化日期輸入
+        function initializeDates() {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 6);
+            
+            document.getElementById('endDate').valueAsDate = endDate;
+            document.getElementById('startDate').valueAsDate = startDate;
+        }
+        
+        // 切換標籤頁
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + '-content').classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // 分析股票 (增強版)
+        async function analyzeStock() {
+            if (isAnalyzing) {
+                UIState.showAlert('分析進行中，請稍候...', 'warning');
+                return;
+            }
+            
+            const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+            if (!symbol) {
+                UIState.showAlert('請輸入股票代號', 'warning');
+                return;
+            }
+            
+            isAnalyzing = true;
+            currentSymbol = symbol;
+            
+            // 設置按鈕載入狀態
+            UIState.setButtonLoading('startChatBtn', false);
+            
+            // 更新UI狀態
+            document.getElementById('stockSymbol').textContent = symbol;
+            document.getElementById('analysisTime').textContent = '分析中...';
+            
+            // 顯示進度指示器
+            showProgressIndicator('analysisSummary', '正在獲取股票數據', '連接數據源...');
+            
+            try {
+                // 1. 載入TradingView圖表
+                showProgressIndicator('analysisSummary', '載入圖表', '建立視覺化界面...');
+                loadTradingViewChart(symbol);
+                
+                // 2. 獲取綜合分析
+                showProgressIndicator('analysisSummary', '分析技術指標', '計算RSI、MACD等指標...');
+                await loadComprehensiveAnalysis(symbol);
+                
+                document.getElementById('analysisTime').textContent = 
+                    `分析完成 - ${new Date().toLocaleTimeString()}`;
+                
+                UIState.showAlert('✅ 分析完成！現在可以開始AI對話', 'success');
+                
+            } catch (error) {
+                console.error('分析錯誤:', error);
+                UIState.showAlert('分析失敗: ' + error.message, 'error', 'analysisSummary', true, 'retryAnalysis');
+            } finally {
+                isAnalyzing = false;
+            }
+        }
+        
+        // 重試分析
+        function retryAnalysis() {
+            analyzeStock();
+        }
+        
+        // 載入TradingView圖表
+        function loadTradingViewChart(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            container.innerHTML = `<iframe src="/chart/custom/${symbol}" 
+                                          style="width: 100%; height: 500px; border: none; border-radius: 8px;">
+                                   </iframe>`;
+        }
+        
+        // 載入綜合分析 (優化版 - 更快速度)
+        async function loadComprehensiveAnalysis(symbol) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超時
+                
+                const response = await fetch(`${API_BASE}/api/analysis/comprehensive/${symbol}?period=3mo`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 並行更新UI（提升用戶體驗）
+                    Promise.all([
+                        updateStockPrice(data),
+                        updateTechnicalIndicators(data.technical_indicators),
+                        updatePatternSignals(data.pattern_analysis),
+                        updateAnalysisSummary(data)
+                    ]);
+                } else {
+                    throw new Error(data.error || '獲取分析數據失敗');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('請求超時，請重試');
+                }
+                throw error;
+            }
+        }
+        
+        // 獨立的股價更新函數
+        function updateStockPrice(data) {
+            try {
+                document.getElementById('stockPrice').textContent = `$${data.current_price.toFixed(2)}`;
+                document.getElementById('priceChange').textContent = data.price_change;
+                document.getElementById('priceChange').className = 
+                    data.price_change.includes('-') ? 'price-change price-down' : 'price-change price-up';
+            } catch (error) {
+                console.warn('更新股價失敗:', error);
+            }
+        }
+        
+        // 增強的進度指示器
+        function showProgressIndicator(containerId, title, details = '') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="loading-enhanced">
+                    <div class="progress-container">
+                        <div class="progress-spinner"></div>
+                        <div class="progress-text">${title}</div>
+                        ${details ? `<div class="progress-details">${details}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 更新技術形態訊號顯示 (增強版)
+        function updatePatternSignals(signals) {
+            const container = document.getElementById('patternSignals');
+            const patternSignals = signals.signals || [];
+            
+            if (patternSignals.length === 0) {
+                UIState.showAlert('目前沒有檢測到明顯的技術形態訊號', 'info', 'patternSignals');
+                return;
+            }
+            
+            let html = '';
+            patternSignals.forEach(signal => {
+                html += `
+                    <div class="signal-item">
+                        <div class="signal-header">
+                            <span class="pattern-type">${signal.description || signal.pattern_type}</span>
+                            <span class="confidence">${signal.confidence}%</span>
+                        </div>
+                        <div class="signal-details">
+                            進場價: $${signal.entry_price?.toFixed(2) || 'N/A'}<br>
+                            目標價: $${signal.target_price?.toFixed(2) || 'N/A'}<br>
+                            停損價: $${signal.stop_loss?.toFixed(2) || 'N/A'}<br>
+                            風險報酬比: ${signal.risk_reward_ratio?.toFixed(2) || 'N/A'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 更新技術指標顯示 (快速簡化版)
+        function updateTechnicalIndicators(indicators) {
+            if (!indicators) {
+                UIState.showAlert('技術指標載入中...', 'info', 'technicalIndicators');
+                return;
+            }
+            
+            const container = document.getElementById('technicalIndicators');
+            let html = '<div style="display: grid; gap: 10px;">';
+            
+            // RSI指標
+            if (indicators.rsi !== undefined && indicators.rsi !== null) {
+                const rsi = parseFloat(indicators.rsi);
+                const rsiSignal = rsi < 30 ? '超賣 🟢' : rsi > 70 ? '超買 🔴' : '中性 🟡';
+                const rsiColor = rsi < 30 ? '#4caf50' : rsi > 70 ? '#f44336' : '#ff9800';
+                
+                html += `
+                    <div class="signal-item" style="border-left-color: ${rsiColor}">
+                        <div class="signal-header">
+                            <span class="pattern-type">RSI (14)</span>
+                            <span class="confidence" style="background: ${rsiColor}">${rsi.toFixed(1)}</span>
+                        </div>
+                        <div class="signal-details">${rsiSignal} - ${rsi < 30 ? '考慮買進' : rsi > 70 ? '謹慎追高' : '持續觀察'}</div>
+                    </div>
+                `;
+            }
+            
+            // 移動平均線
+            if (indicators.ma20 !== undefined && indicators.ma20 !== null) {
+                const ma20 = parseFloat(indicators.ma20);
+                html += `
+                    <div class="signal-item">
+                        <div class="signal-header">
+                            <span class="pattern-type">MA20 均線</span>
+                            <span class="confidence">$${ma20.toFixed(2)}</span>
+                        </div>
+                        <div class="signal-details">20日移動平均線支撐阻力位</div>
+                    </div>
+                `;
+            }
+            
+            // 成交量
+            if (indicators.volume_avg !== undefined && indicators.volume_avg !== null) {
+                const volume = parseInt(indicators.volume_avg);
+                html += `
+                    <div class="signal-item">
+                        <div class="signal-header">
+                            <span class="pattern-type">平均成交量</span>
+                            <span class="confidence">${(volume / 1000000).toFixed(1)}M</span>
+                        </div>
+                        <div class="signal-details">日均成交量水準</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // 更新分析摘要 (增強版)
+        function updateAnalysisSummary(data) {
+            const container = document.getElementById('analysisSummary');
+            
+            let html = `
+                <div class="signal-item">
+                    <div class="signal-header">
+                        <span class="pattern-type">📊 綜合評分</span>
+                        <span class="confidence">${data.pattern_analysis?.overall_signal?.score || 'N/A'}/100</span>
+                    </div>
+                    <div class="signal-details">
+                        ${data.pattern_analysis?.summary || '分析完成，數據整合中...'}
+                    </div>
+                </div>
+            `;
+            
+            // 其他摘要信息...
+            container.innerHTML = html;
+        }
+        
+        // 開始AI聊天 (增強版)
+        async function startChat() {
+            if (!currentSymbol) {
+                UIState.showAlert('請先分析一檔股票', 'warning');
+                return;
+            }
+            
+            UIState.setButtonLoading('startChatBtn', true);
+            UIState.updateChatStatus('connecting', '連接中...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/ai/strategy-chat/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: currentSymbol,
+                        strategy_request: "請分析當前股票的投資策略",
+                        period: "3mo"
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentChatSession = data.session_id;
+                    UIState.updateChatStatus('connected', '已連接');
+                    addChatMessage('assistant', data.welcome_message.content);
+                    
+                    // 啟用聊天輸入
+                    document.getElementById('chatInput').disabled = false;
+                    document.getElementById('sendBtn').disabled = false;
+                    
+                    UIState.showAlert('✅ AI顧問已就緒！', 'success');
+                } else {
+                    throw new Error(data.detail || '無法啟動AI聊天');
+                }
+            } catch (error) {
+                console.error('AI聊天啟動錯誤:', error);
+                UIState.updateChatStatus('error', '連接失敗');
+                addChatMessage('assistant', '⚠️ AI服務目前不可用，請檢查網路連接或稍後重試。');
+            } finally {
+                UIState.setButtonLoading('startChatBtn', false);
+            }
+        }
+        
+        // 發送聊天訊息 (增強版)
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            if (!currentChatSession) {
+                UIState.showAlert('請先開始對話', 'warning');
+                return;
+            }
+            
+            // 添加用戶訊息
+            addChatMessage('user', message);
+            input.value = '';
+            
+            // 設置載入狀態
+            UIState.setButtonLoading('sendBtn', true);
+            addChatMessage('assistant', '正在思考中...', true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/ai/strategy-chat/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: currentChatSession,
+                        message: message,
+                        symbol: currentSymbol
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 移除載入訊息
+                    removeLastMessage();
+                    addChatMessage('assistant', data.response.content);
+                } else {
+                    throw new Error(data.detail || '發送訊息失敗');
+                }
+            } catch (error) {
+                console.error('發送訊息錯誤:', error);
+                removeLastMessage();
+                addChatMessage('assistant', '⚠️ 訊息發送失敗: ' + error.message + ' 請重試。');
+            } finally {
+                UIState.setButtonLoading('sendBtn', false);
+            }
+        }
+        
+        // 添加聊天訊息 (增強版)
+        function addChatMessage(role, content, isTemp = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            if (isTemp) messageDiv.classList.add('temp-message');
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${content}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // 移除最後一條訊息
+        function removeLastMessage() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const tempMessage = messagesContainer.querySelector('.temp-message');
+            if (tempMessage) {
+                tempMessage.remove();
+            }
+        }
+        
+        // 重置聊天
+        function resetChat() {
+            currentChatSession = null;
+            UIState.updateChatStatus('', '未連接');
+            
+            document.getElementById('chatInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="message assistant">
+                    <div class="message-content">👋 歡迎使用AI策略顧問！請先分析一檔股票，然後點擊「開始對話」!</div>
+                    <div class="message-time">系統訊息</div>
+                </div>
+            `;
+        }
+        
+        // 執行回測 (增強版)
+        async function runBacktest() {
+            if (!currentSymbol) {
+                UIState.showAlert('請先分析一檔股票', 'warning');
+                return;
+            }
+            
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const minConfidence = document.getElementById('minConfidence').value;
+            const initialCapital = document.getElementById('initialCapital').value;
+            
+            if (!startDate || !endDate) {
+                UIState.showAlert('請選擇回測日期範圍', 'warning');
+                return;
+            }
+            
+            showProgressIndicator('backtestResults', '執行回測中', '計算策略績效...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/backtest/pattern-strategy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: currentSymbol,
+                        start_date: startDate,
+                        end_date: endDate,
+                        min_confidence: parseFloat(minConfidence),
+                        initial_capital: parseFloat(initialCapital),
+                        risk_reward_ratio: 1.5,
+                        max_holding_days: 20,
+                        stop_loss_pct: 0.08,
+                        commission: 0.001
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateBacktestResults(data);
+                } else {
+                    throw new Error(data.detail || '回測失敗');
+                }
+            } catch (error) {
+                console.error('回測錯誤:', error);
+                UIState.showAlert('回測失敗: ' + error.message, 'error', 'backtestResults', true, 'runBacktest');
+            }
+        }
+        
+        // 更新回測結果 (增強版)
+        function updateBacktestResults(data) {
+            const container = document.getElementById('backtestResults');
+            const summary = data.performance_summary;
+            
+            let html = `
+                <div class="backtest-results">
+                    <h4 style="color: #2196f3; margin-bottom: 15px;">
+                        <i class="fas fa-trophy"></i> 回測結果
+                    </h4>
+                    <div class="performance-metric">
+                        <span>📈 總報酬率:</span>
+                        <span class="metric-value" style="color: ${summary.total_return.includes('-') ? '#f44336' : '#4caf50'}">${summary.total_return}</span>
+                    </div>
+                    <div class="performance-metric">
+                        <span>📊 年化報酬率:</span>
+                        <span class="metric-value">${summary.annual_return}</span>
+                    </div>
+                    <div class="performance-metric">
+                        <span>📉 最大回撤:</span>
+                        <span class="metric-value">${summary.max_drawdown}</span>
+                    </div>
+                    <div class="performance-metric">
+                        <span>⚡ 夏普比率:</span>
+                        <span class="metric-value">${summary.sharpe_ratio}</span>
+                    </div>
+                    <div class="performance-metric">
+                        <span>🎯 勝率:</span>
+                        <span class="metric-value">${summary.win_rate}</span>
+                    </div>
+                    <div class="performance-metric">
+                        <span>🔄 交易次數:</span>
+                        <span class="metric-value">${summary.total_trades}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // 清除分析 (增強版)
+        function clearAnalysis() {
+            currentSymbol = '';
+            isAnalyzing = false;
+            resetChat();
+            
+            document.getElementById('stockSymbol').textContent = '-';
+            document.getElementById('stockPrice').textContent = '$0.00';
+            document.getElementById('priceChange').textContent = '0.00%';
+            document.getElementById('analysisTime').textContent = '等待分析...';
+            
+            // 重置所有區塊
+            showProgressIndicator('patternSignals', '等待技術形態分析', '分析K線形態、支撐阻力位');
+            showProgressIndicator('technicalIndicators', '等待技術指標計算', '計算RSI、MACD、移動平均線');
+            showProgressIndicator('analysisSummary', '等待分析結果', '綜合技術指標和AI建議');
+            
+            document.getElementById('backtestResults').innerHTML = `
+                <div class="loading-enhanced">
+                    <div class="progress-container">
+                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px; color: #2196f3;"></i>
+                        <div class="progress-text">準備回測</div>
+                        <div class="progress-details">設定參數後點擊執行回測</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('tradingview_widget').innerHTML = `
+                <div class="loading-enhanced">
+                    <div class="progress-container">
+                        <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 15px; color: #2196f3;"></i>
+                        <div class="progress-text">請輸入股票代號開始分析</div>
+                        <div class="progress-details">支援美股 (AAPL) 和台股 (2330.TW)</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // DOM載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDates();
+            
+            // Enter鍵支援
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            document.getElementById('symbolInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    analyzeStock();
+                }
+            });
+            
+            // 自動聚焦輸入框
+            document.getElementById('symbolInput').focus();
+        });
+    </script>
+</body>
+</html>

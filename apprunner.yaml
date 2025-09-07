@@ -1,0 +1,22 @@
+
+version: 1.0
+runtime: python3
+build:
+  commands:
+    build:
+      - echo "Installing dependencies..."
+      - pip install -r requirements-simple.txt
+run:
+  runtime-version: 3.11
+  command: python -m uvicorn src.api.main_core:app --host 0.0.0.0 --port 8000
+  network:
+    port: 8000
+  env:
+    - name: ENVIRONMENT
+      value: production
+    - name: DEBUG
+      value: false
+    - name: SERVICE_NAME
+      value: auto-trade-core
+    - name: DATABASE_URL
+      value: sqlite:///./data/trading.db

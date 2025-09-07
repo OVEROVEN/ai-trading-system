@@ -1,0 +1,54 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Auto-Trade Core API on AWS Lambda
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        ENVIRONMENT: production
+        DEBUG: false
+        SERVICE_NAME: auto-trade-core
+
+Resources:
+  AutoTradeCoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: lambda_handler.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Events:
+        AutoTradeCore:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Environment:
+        Variables:
+          DATABASE_URL: sqlite:///./data/trading.db
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          GOOGLE_CLIENT_ID: "610357573971-t2r6c0b3i8fq8kng1j8e5s4l6jiqiggf.apps.googleusercontent.com"
+          GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
+
+Parameters:
+  OpenAIApiKey:
+    Type: String
+    Description: OpenAI API Key
+    NoEcho: true
+    Default: ""
+    
+  GoogleClientSecret:
+    Type: String 
+    Description: Google OAuth Client Secret
+    NoEcho: true
+    Default: ""
+
+Outputs:
+  AutoTradeCoreApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

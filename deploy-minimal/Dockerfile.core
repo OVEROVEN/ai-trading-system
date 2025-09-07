@@ -1,0 +1,27 @@
+# 核心API服務 - 精簡版Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 只安裝核心依賴
+COPY requirements-core.txt .
+RUN pip install --no-cache-dir -r requirements-core.txt
+
+# 複製核心應用代碼
+COPY src/api/main_core.py ./src/api/main.py
+COPY src/data_fetcher/ ./src/data_fetcher/
+COPY src/analysis/ ./src/analysis/
+COPY src/auth/ ./src/auth/
+COPY config/ ./config/
+
+# 創建必要目錄
+RUN mkdir -p data logs
+
+# 設置Python路徑
+ENV PYTHONPATH=/app
+
+# 核心API服務端口
+EXPOSE 8000
+
+# 啟動核心服務
+CMD ["python", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

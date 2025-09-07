@@ -1,0 +1,134 @@
+# 🔧 Google Cloud Run 環境變數配置範例
+# 複製此文件為 .env 並填入真實值
+
+# ==========================================
+# 🚨 必需的環境變數 (部署後必須設置)
+# ==========================================
+
+# OpenAI API Key - AI功能必需
+OPENAI_API_KEY=sk-proj-your_openai_api_key_here
+
+# Google OAuth 設置 - 如果使用Google登入
+GOOGLE_CLIENT_ID=610357573971-t2r6c0b3i8fq8kng1j8e5s4l6jiqiggf.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# JWT 密鑰 - 用戶認證
+JWT_SECRET_KEY=your_jwt_secret_key_here
+
+# ==========================================
+# 📊 系統配置 (已預設，通常無需修改)
+# ==========================================
+
+# 運行環境
+ENVIRONMENT=production
+DEBUG=false
+
+# 數據庫 (Cloud Run 使用臨時存儲)
+DATABASE_URL=sqlite:///tmp/trading.db
+
+# API 配置
+API_HOST=0.0.0.0
+PORT=8080
+
+# ==========================================
+# 🤖 AI 模型配置 (可選)
+# ==========================================
+
+# AI 模型選擇
+AI_MODEL_BASIC=gpt-3.5-turbo
+AI_MODEL_ADVANCED=gpt-4o-mini
+AI_MODEL_VISION=gpt-4o
+AI_AUTO_MODEL_SELECTION=true
+
+# AI 參數
+AI_MAX_TOKENS=2000
+AI_TEMPERATURE=0.7
+AI_TOP_P=1.0
+
+# ==========================================
+# 📈 股票數據配置 (可選)
+# ==========================================
+
+# Alpha Vantage API (可選，用於補充數據)
+ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key_here
+
+# Yahoo Finance 配置
+YAHOO_FINANCE_ENABLED=true
+YAHOO_FINANCE_TIMEOUT=30
+
+# ==========================================
+# 🔄 Redis 快取配置 (可選)
+# ==========================================
+
+# Redis URL (如果使用 Google Cloud Memorystore)
+# REDIS_URL=redis://your_redis_instance_ip:6379/0
+# REDIS_PASSWORD=your_redis_password
+
+# 快取設置
+CACHE_ENABLED=false
+CACHE_TTL=300
+
+# ==========================================
+# 📊 監控和日誌 (可選)
+# ==========================================
+
+# 日誌級別
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+
+# Sentry 錯誤追蹤 (可選)
+# SENTRY_DSN=your_sentry_dsn_here
+
+# ==========================================
+# 🌐 CORS 設置 (如需前端集成)
+# ==========================================
+
+# 允許的來源
+CORS_ORIGINS=*
+CORS_CREDENTIALS=true
+
+# ==========================================
+# 💾 數據持久化 (進階配置)
+# ==========================================
+
+# 如果使用 Cloud SQL PostgreSQL
+# DATABASE_URL=postgresql://username:password@/dbname?host=/cloudsql/project:region:instance-name
+
+# 如果使用 Cloud Firestore
+# FIRESTORE_PROJECT_ID=your_project_id
+# FIRESTORE_COLLECTION=trading_data
+
+# ==========================================
+# 🔐 安全配置
+# ==========================================
+
+# 密鑰加密
+SECRET_KEY=your_secret_key_for_encryption
+
+# API 限流
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_CALLS=100
+RATE_LIMIT_PERIOD=60
+
+# ==========================================
+# 📧 通知設置 (可選)
+# ==========================================
+
+# 電子郵件通知
+# SMTP_SERVER=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USERNAME=your_email@gmail.com
+# SMTP_PASSWORD=your_app_password
+
+# ==========================================
+# 🎯 功能開關
+# ==========================================
+
+# 功能控制
+FEATURE_AI_ANALYSIS=true
+FEATURE_BACKTEST=true
+FEATURE_TAIWAN_STOCKS=true
+FEATURE_WEBSOCKET=true
+
+# 實驗性功能
+EXPERIMENTAL_FEATURES=false

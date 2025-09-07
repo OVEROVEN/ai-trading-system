@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台股TradingView Widget範例</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .sample-link { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 5px; }
+        .sample-link:hover { background: #0056b3; }
+        .info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> 台股TradingView Widget範例</h1>
+        
+        <div class="card">
+            <h2> 範例圖表</h2>
+            <div class="info">
+                <strong>功能特色:</strong><br>
+                • 專業級TradingView圖表介面<br>
+                • 台股專用符號格式 (TPE:代號)<br>
+                • 內建技術指標 (成交量、RSI、MACD)<br>
+                • 響應式設計，支援各種螢幕尺寸<br>
+                • 詳細的股票資訊面板<br>
+                • 產業分類和市值資訊
+            </div>
+            
+            <a href="taiwan_widget_2330_dark.html" class="sample-link">2330 (台積電)</a>
+<a href="taiwan_widget_2454_dark.html" class="sample-link">2454 (聯發科)</a>
+<a href="taiwan_widget_0050_dark.html" class="sample-link">0050 (台灣50)</a>
+        </div>
+        
+        <div class="card">
+            <h2> API端點</h2>
+            <p><strong>圖表顯示:</strong> <code>/chart/taiwan-widget/{symbol}</code></p>
+            <p><strong>股票資訊:</strong> <code>/api/taiwan-widget/stock-info/{symbol}</code></p>
+            <p><strong>符號搜尋:</strong> <code>/api/taiwan-widget/symbol-search?query={關鍵字}</code></p>
+        </div>
+        
+        <div class="card">
+            <h2>⚙ 使用方式</h2>
+            <p>1. 啟動FastAPI服務器: <code>uv run python -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000</code></p>
+            <p>2. 訪問圖表: <code>http://localhost:8000/chart/taiwan-widget/2330</code></p>
+            <p>3. 或直接開啟上方的範例HTML文件</p>
+        </div>
+    </div>
+</body>
+</html>
+        

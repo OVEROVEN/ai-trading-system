@@ -1,0 +1,20 @@
+# Railway Optimized Docker - Ultra Simple
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies only
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY src/ ./src/
+COPY config/ ./config/
+
+# Create data directory
+RUN mkdir -p data logs
+
+# Railway uses PORT environment variable
+CMD python -m uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taiwan Stock Widget Test - TWSE:2330</title>
+</head>
+<body style="margin: 0; padding: 0; height: 100vh; background: #1e222d;">
+    <div style="padding: 20px; color: white; text-align: center;">
+        <h2>台積電 (TWSE:2330) - TradingView Widget 測試</h2>
+        <p>此測試驗證台股符號在HTTPS環境下是否正常工作</p>
+    </div>
+    
+    <div id="tradingview_widget" style="width: 100%; height: 500px; margin: 20px 0;"></div>
+    
+    <div style="padding: 20px; color: white; background: #2a2e39; margin: 20px;">
+        <h3>測試檢查項目：</h3>
+        <ul>
+            <li>✓ Widget是否載入</li>
+            <li>✓ 符號是否顯示為 TWSE:2330</li>
+            <li>✓ 是否能看到實際的K線數據</li>
+            <li>✓ OHLC數據是否不再顯示 ∅</li>
+            <li>✓ 技術指標是否正常</li>
+        </ul>
+    </div>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+        new TradingView.widget({
+            "width": "100%",
+            "height": "500",
+            "symbol": "TWSE:2330",
+            "interval": "D",
+            "timezone": "Asia/Taipei",
+            "theme": "dark",
+            "style": "1",
+            "locale": "zh_TW",
+            "toolbar_bg": "#1e222d",
+            "enable_publishing": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_widget",
+            "autosize": true,
+            "fullscreen": false,
+            "studies": [
+                "Volume@tv-basicstudies",
+                "RSI@tv-basicstudies"
+            ],
+            "hide_side_toolbar": false,
+            "withdateranges": true,
+            "hide_legend": false,
+            "save_image": true
+        });
+        
+        console.log('TradingView Widget initialized with symbol: TWSE:2330');
+    </script>
+</body>
+</html>

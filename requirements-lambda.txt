@@ -1,0 +1,20 @@
+
+# AWS Lambda專用依賴
+mangum==0.17.0
+
+# 核心FastAPI
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+
+# 數據處理
+pandas==2.1.4
+numpy==1.25.2
+requests==2.31.0
+yfinance==0.2.18
+
+# 基礎工具
+python-dotenv==1.0.0
+
+# AWS SDK (可選)
+boto3==1.34.0

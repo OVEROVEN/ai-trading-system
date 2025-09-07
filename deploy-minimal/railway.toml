@@ -1,0 +1,19 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.core"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+
+[variables]
+ENVIRONMENT = "production"
+DEBUG = "false"
+SERVICE_NAME = "core-api"
+# Chart service URL will be updated after chart service deployment
+CHART_SERVICE_URL = "https://chart-service-production.up.railway.app"
+
+# Required environment variables for production
+DATABASE_URL = "sqlite:///./data/trading.db"
+OPENAI_API_KEY = ""
+GOOGLE_CLIENT_ID = "610357573971-t2r6c0b3i8fq8kng1j8e5s4l6jiqiggf.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = ""

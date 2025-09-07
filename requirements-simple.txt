@@ -1,0 +1,24 @@
+# 最簡化的依賴 - 確保Render部署成功
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 數據處理
+pandas==2.1.4
+numpy==1.25.2
+requests==2.31.0
+yfinance==0.2.18
+
+# 基礎工具
+python-dotenv==1.0.0
+aiofiles==23.2.1
+
+# 數據庫 (簡化)
+sqlalchemy==2.0.23
+
+# 認證 (最小化)
+PyJWT==2.8.0
+python-multipart==0.0.6
+bcrypt==4.1.2
+passlib==1.7.4

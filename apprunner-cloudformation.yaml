@@ -1,0 +1,70 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Auto-Trade Core API on AWS App Runner'
+
+Parameters:
+  RepositoryUrl:
+    Type: String
+    Description: GitHub repository URL
+    Default: "https://github.com/OVEROVEN/auto_trade"
+  
+  Branch:
+    Type: String
+    Description: GitHub branch
+    Default: "master"
+    
+  OpenAIApiKey:
+    Type: String
+    Description: OpenAI API Key
+    NoEcho: true
+    Default: ""
+    
+  GoogleClientSecret:
+    Type: String
+    Description: Google OAuth Client Secret  
+    NoEcho: true
+    Default: ""
+
+Resources:
+  AutoTradeAppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: auto-trade-core
+      SourceConfiguration:
+        AutoDeploymentsEnabled: true
+        CodeRepository:
+          RepositoryUrl: !Ref RepositoryUrl
+          SourceCodeVersion:
+            Type: BRANCH
+            Value: !Ref Branch
+          CodeConfiguration:
+            ConfigurationSource: CONFIGURATION_FILE
+            CodeConfigurationValues:
+              Runtime: PYTHON_3
+              BuildCommand: pip install -r requirements-simple.txt
+              StartCommand: python -m uvicorn src.api.main_core:app --host 0.0.0.0 --port 8000
+              Port: 8000
+              RuntimeEnvironmentVariables:
+                - Name: ENVIRONMENT
+                  Value: production
+                - Name: DEBUG
+                  Value: false
+                - Name: SERVICE_NAME
+                  Value: auto-trade-core
+                - Name: DATABASE_URL
+                  Value: "sqlite:///./data/trading.db"
+                - Name: OPENAI_API_KEY
+                  Value: !Ref OpenAIApiKey
+                - Name: GOOGLE_CLIENT_SECRET
+                  Value: !Ref GoogleClientSecret
+      InstanceConfiguration:
+        Cpu: 0.25 vCPU
+        Memory: 0.5 GB
+
+Outputs:
+  ServiceUrl:
+    Description: App Runner service URL
+    Value: !GetAtt AutoTradeAppRunnerService.ServiceUrl
+  ServiceArn:
+    Description: App Runner service ARN
+    Value: !GetAtt AutoTradeAppRunnerService.ServiceArn

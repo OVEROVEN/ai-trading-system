@@ -1,0 +1,462 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台股TradingView Widget 演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .features {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .features h2 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .stock-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+        }
+        
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stock-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2962FF;
+        }
+        
+        .stock-exchange {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .stock-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .stock-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .stock-industry {
+            margin-bottom: 10px;
+        }
+        
+        .industry-badge {
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .stock-tradingview {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #888;
+            background: #f5f5f5;
+            padding: 5px 8px;
+            border-radius: 4px;
+        }
+        
+        .api-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .api-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .api-endpoint {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .api-endpoint .method {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .api-endpoint .url {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        .quick-start {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .command {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>台股TradingView Widget</h1>
+            <p>專業級台股圖表解決方案</p>
+        </div>
+        
+        <div class="features">
+            <h2>功能特色</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>專業級TradingView圖表介面</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>台股專用符號格式支援</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>內建多種技術指標</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>響應式設計支援</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>詳細股票資訊面板</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>產業分類顏色編碼</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>免費且完全合規</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>支援上市上櫃股票</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quick-start">
+            <h2>快速啟動</h2>
+            <p><strong>1. 啟動API服務器:</strong></p>
+            <div class="command">uv run python -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000</div>
+            
+            <p><strong>2. 訪問圖表 (任選一種方式):</strong></p>
+            <div class="command">http://localhost:8000/chart/taiwan-widget/2330</div>
+            <div class="command">直接開啟下方的HTML文件</div>
+        </div>
+        
+        <h2 style="color: white; text-align: center; margin-bottom: 30px;">熱門台股圖表演示</h2>
+        <div class="stocks-grid">
+            
+        <div class="stock-card" onclick="openChart('2330_台積電_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2330</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">台積電</div>
+            <div class="stock-description">半導體龍頭</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #4CAF50;">
+                    半導體
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2330</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('2454_聯發科_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2454</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">聯發科</div>
+            <div class="stock-description">IC設計龍頭</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #4CAF50;">
+                    半導體
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2454</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('2881_富邦金_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2881</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">富邦金</div>
+            <div class="stock-description">金融龍頭</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #FF9800;">
+                    金融
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2881</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('2603_長榮_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2603</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">長榮</div>
+            <div class="stock-description">航運龍頭</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #00BCD4;">
+                    航運
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2603</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('0050_台灣50_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">0050</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">台灣50</div>
+            <div class="stock-description">市值型ETF</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #E91E63;">
+                    ETF
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:0050</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('0056_高股息_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">0056</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">高股息</div>
+            <div class="stock-description">股息型ETF</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #E91E63;">
+                    ETF
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:0056</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('2412_中華電_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2412</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">中華電</div>
+            <div class="stock-description">電信龍頭</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #9C27B0;">
+                    電信
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2412</div>
+        </div>
+        
+        <div class="stock-card" onclick="openChart('2317_鴻海_dark.html')">
+            <div class="stock-header">
+                <div class="stock-code">2317</div>
+                <div class="stock-exchange">TWSE</div>
+            </div>
+            <div class="stock-name">鴻海</div>
+            <div class="stock-description">電子代工</div>
+            <div class="stock-industry">
+                <span class="industry-badge" style="background-color: #2196F3;">
+                    電子製造
+                </span>
+            </div>
+            <div class="stock-tradingview">TradingView: TPE:2317</div>
+        </div>
+        
+        </div>
+        
+        <div class="api-section">
+            <h2>API端點說明</h2>
+            
+            <div class="api-endpoint">
+                <span class="method">GET</span>
+                <span class="url">/chart/taiwan-widget/{symbol}</span>
+                <p>顯示台股圖表頁面 (例: /chart/taiwan-widget/2330)</p>
+            </div>
+            
+            <div class="api-endpoint">
+                <span class="method">GET</span>
+                <span class="url">/api/taiwan-widget/stock-info/{symbol}</span>
+                <p>獲取台股詳細資訊JSON (例: /api/taiwan-widget/stock-info/2330)</p>
+            </div>
+            
+            <div class="api-endpoint">
+                <span class="method">GET</span>
+                <span class="url">/api/taiwan-widget/symbol-search?query={關鍵字}</span>
+                <p>搜尋台股符號 (例: /api/taiwan-widget/symbol-search?query=台積電)</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 台股TradingView Widget - 使用TradingView免費Widget + 台股開放資料</p>
+            <p>完全免費，無授權問題，專業級圖表解決方案</p>
+        </div>
+    </div>
+
+    <script>
+        function openChart(filename) {
+            window.open(filename, '_blank');
+        }
+        
+        // 添加一些互動效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.stock-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+    

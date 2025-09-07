@@ -1,0 +1,421 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中華電 (2412) - 台股TradingView圖表</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e222d;
+            color: #d1d4dc;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .main-container {
+            display: flex;
+            height: 100vh;
+            gap: 15px;
+            padding: 15px;
+        }
+        
+        .chart-container {
+            flex: 3;
+            background: #2a2e39;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        
+        .chart-header {
+            background: #131722;
+            padding: 15px 20px;
+            border-bottom: 1px solid #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stock-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .stock-code {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2962ff;
+        }
+        
+        .stock-name {
+            font-size: 16px;
+            color: #d1d4dc;
+        }
+        
+        .industry-badge {
+            background: #9C27B0;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .exchange-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .trading-widget {
+            width: 100%;
+            height: calc(100% - 70px);
+        }
+        
+        .info-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        
+        .info-card {
+            background: #2a2e39;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stock-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #495057;
+        }
+        
+        .symbol-tester {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .test-btn {
+            padding: 8px 12px;
+            border: 1px solid #495057;
+            border-radius: 6px;
+            background: #2a2e39;
+            color: #d1d4dc;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .test-btn:hover {
+            background: #2962ff;
+            color: white;
+            border-color: #2962ff;
+        }
+        
+        .test-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #495057;
+            border-radius: 6px;
+            background: #343a40;
+            color: #d1d4dc;
+            font-size: 14px;
+        }
+        
+        .test-submit {
+            padding: 8px 16px;
+            background: #2962ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .feature-list {
+            list-style: none;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .feature-list li {
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .info-panel {
+                width: 100%;
+                max-height: 200px;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .info-card {
+                min-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="stock-title">
+                    <div>
+                        <div class="stock-code">2412</div>
+                        <div class="stock-name">中華電</div>
+                    </div>
+                    <div class="industry-badge">電信</div>
+                </div>
+                <div class="exchange-info">
+                    <span>🇹🇼 TWSE</span>
+                    <span>•</span>
+                    <span>09:00-13:30</span>
+                    <span>•</span>
+                    <span>Asia/Taipei</span>
+                </div>
+            </div>
+            <div class="trading-widget">
+                <div id="tradingview_widget" style="width: 100%; height: 100%;"></div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <!-- 股票詳細資訊 -->
+            <div class="info-card">
+                <div class="card-title">
+                    <i class="fas fa-info-circle"></i>
+                    股票資訊
+                </div>
+                <div class="stock-detail">
+                    <div class="detail-item">
+                        <span>代號:</span>
+                        <span>2412</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>名稱:</span>
+                        <span>中華電</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>交易所:</span>
+                        <span>TWSE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>產業:</span>
+                        <span>電信</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>市值:</span>
+                        <span>large</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>幣別:</span>
+                        <span>TWD</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 符號測試器 -->
+            <div class="info-card">
+                <div class="card-title">
+                    <i class="fas fa-search"></i>
+                    股票查詢
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="symbolInput" placeholder="輸入股票代號..." class="test-input">
+                        <button onclick="testSymbol()" class="test-submit">查詢</button>
+                    </div>
+                </div>
+                <div class="symbol-tester">
+                    <button class="test-btn" onclick="loadSymbol('2330')">台積電</button>
+                    <button class="test-btn" onclick="loadSymbol('2454')">聯發科</button>
+                    <button class="test-btn" onclick="loadSymbol('2881')">富邦金</button>
+                </div>
+                <div class="symbol-tester">
+                    <button class="test-btn" onclick="loadSymbol('0050')">台灣50</button>
+                    <button class="test-btn" onclick="loadSymbol('2603')">長榮</button>
+                    <button class="test-btn" onclick="loadSymbol('2412')">中華電</button>
+                </div>
+            </div>
+            
+            <!-- 功能特色 -->
+            <div class="info-card">
+                <div class="card-title">
+                    <i class="fas fa-star"></i>
+                    圖表功能
+                </div>
+                <ul class="feature-list">
+                    <li>即時K線圖表</li>
+                    <li>成交量分析</li>
+                    <li>RSI技術指標</li>
+                    <li>MACD動量指標</li>
+                    <li>多時間週期切換</li>
+                    <li>圖表工具繪製</li>
+                    <li>專業技術分析</li>
+                    <li>台股交易時間</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+        // TradingView Widget 配置
+        const widgetConfig = {"width": "100%", "height": "100%", "symbol": "TPE:2412", "interval": "D", "timezone": "Asia/Taipei", "theme": "dark", "style": "1", "locale": "zh_TW", "toolbar_bg": "#1e222d", "enable_publishing": false, "allow_symbol_change": true, "container_id": "tradingview_widget", "autosize": true, "fullscreen": false, "studies": ["Volume@tv-basicstudies", "RSI@tv-basicstudies", "MACD@tv-basicstudies", "MACD@tv-basicstudies", "MA@tv-basicstudies"], "hide_side_toolbar": false, "withdateranges": true, "hide_legend": false, "save_image": true};
+        
+        // 技術指標覆蓋設定
+        widgetConfig.studies_overrides = {
+            "volume.volume.color.0": "#f23645",
+            "volume.volume.color.1": "#26a69a",
+            "volume.volume.transparency": 75,
+            "RSI.RSI.color": "#2196F3",
+            "RSI.upper band.color": "#787B86",
+            "RSI.lower band.color": "#787B86",
+            "RSI.RSI.linewidth": 2,
+            "MACD.macd.color": "#2962FF",
+            "MACD.signal.color": "#FF6D00",
+            "MACD.histogram.color": "#26A69A"
+        };
+        
+        // 圖表樣式覆蓋
+        widgetConfig.overrides = {
+            "paneProperties.background": "#1e222d",
+            "paneProperties.backgroundType": "solid",
+            "paneProperties.vertGridProperties.color": "#363c4e",
+            "paneProperties.horzGridProperties.color": "#363c4e",
+            "symbolWatermarkProperties.transparency": 90,
+            "scalesProperties.textColor": "#d1d4dc",
+            "scalesProperties.fontSize": 12,
+            "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
+            "mainSeriesProperties.candleStyle.wickDownColor": "#f23645",
+            "mainSeriesProperties.candleStyle.upColor": "#26a69a",
+            "mainSeriesProperties.candleStyle.downColor": "#f23645",
+            "mainSeriesProperties.candleStyle.borderUpColor": "#26a69a",
+            "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
+            "mainSeriesProperties.candleStyle.wickVisible": true,
+            "volumePaneSize": "medium"
+        };
+        
+        // 禁用功能
+        widgetConfig.disabled_features = [
+            "header_saveload",
+            "study_dialog_search_control"
+        ];
+        
+        // 啟用功能
+        widgetConfig.enabled_features = [
+            "move_logo_to_main_pane",
+            "study_templates",
+            "side_toolbar_in_fullscreen_mode"
+        ];
+        
+        // 初始化Widget
+        function initTradingViewWidget() {
+            try {
+                new TradingView.widget(widgetConfig);
+                console.log('台股TradingView Widget 初始化成功:', 'TPE:2412');
+            } catch (error) {
+                console.error('TradingView Widget 初始化失敗:', error);
+                document.getElementById('tradingview_widget').innerHTML = 
+                    '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #dc3545;">' +
+                    '<div style="text-align: center;">' +
+                    '<h3>⚠️ 圖表載入失敗</h3>' +
+                    '<p>請檢查網路連接或稍後重試</p>' +
+                    '</div></div>';
+            }
+        }
+        
+        // 符號查詢功能
+        function testSymbol() {
+            const symbol = document.getElementById('symbolInput').value.trim();
+            if (symbol) {
+                loadSymbol(symbol);
+            } else {
+                alert('請輸入股票代號');
+            }
+        }
+        
+        function loadSymbol(symbol) {
+            const newUrl = `/chart/taiwan-widget/${symbol}`;
+            window.location.href = newUrl;
+        }
+        
+        // 頁面載入後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 檢查TradingView是否可用
+            if (typeof TradingView !== 'undefined') {
+                initTradingViewWidget();
+            } else {
+                // 等待TradingView載入
+                let attempts = 0;
+                const checkTradingView = setInterval(() => {
+                    attempts++;
+                    if (typeof TradingView !== 'undefined') {
+                        clearInterval(checkTradingView);
+                        initTradingViewWidget();
+                    } else if (attempts > 20) {
+                        clearInterval(checkTradingView);
+                        console.error('TradingView 載入超時');
+                    }
+                }, 500);
+            }
+            
+            // 支援Enter鍵查詢
+            document.getElementById('symbolInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    testSymbol();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+        

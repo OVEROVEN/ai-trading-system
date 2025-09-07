@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>登入模態框修復驗證</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1e293b;
+            color: white;
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #475569;
+            border-radius: 8px;
+        }
+        .status { 
+            font-weight: bold; 
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .pass { background: #10b981; }
+        .fail { background: #ef4444; }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 登入模態框修復驗證</h1>
+    
+    <div class="test-section">
+        <h2>📋 修復項目檢查清單</h2>
+        <div id="checklist">
+            <div>✅ z-index設為9999 (最上層)</div>
+            <div>✅ 位置改為中間偏上 (pt-16)</div>
+            <div>✅ 添加背景點擊關閉功能</div>
+            <div>✅ 改善關閉按鈕樣式和功能</div>
+            <div>✅ 添加進入/退出動畫效果</div>
+            <div>✅ 增加模糊背景效果</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 手動測試步驟</h2>
+        <ol>
+            <li>在下方iframe中點擊右上角的「Login」按鈕</li>
+            <li>檢查登入模態框是否出現在畫面中央偏上位置</li>
+            <li>確認模態框沒有被其他元素遮擋</li>
+            <li>嘗試在登入表單中輸入文字</li>
+            <li>點擊關閉按鈕(X)或背景區域關閉模態框</li>
+            <li>重複測試確保一致性</li>
+        </ol>
+        
+        <button onclick="document.getElementById('testFrame').src = document.getElementById('testFrame').src">
+            🔄 重新載入測試頁面
+        </button>
+        
+        <button onclick="checkModalPosition()">
+            📏 檢查模態框位置
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 前端應用測試</h2>
+        <iframe id="testFrame" src="http://localhost:3000"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 測試結果</h2>
+        <div id="testResults">
+            <div>模態框可見性: <span id="visibilityStatus" class="status">未測試</span></div>
+            <div>位置正確性: <span id="positionStatus" class="status">未測試</span></div>
+            <div>互動功能: <span id="interactionStatus" class="status">未測試</span></div>
+            <div>關閉功能: <span id="closeStatus" class="status">未測試</span></div>
+        </div>
+    </div>
+
+    <script>
+        function checkModalPosition() {
+            const iframe = document.getElementById('testFrame');
+            const testFrame = iframe.contentWindow;
+            
+            if (testFrame) {
+                // 嘗試檢查iframe內的模態框
+                try {
+                    const modal = testFrame.document.querySelector('.fixed.inset-0');
+                    const dialog = testFrame.document.querySelector('.bg-slate-800.rounded-xl');
+                    
+                    if (modal && dialog) {
+                        const rect = dialog.getBoundingClientRect();
+                        const viewport = {
+                            width: testFrame.innerWidth,
+                            height: testFrame.innerHeight
+                        };
+                        
+                        console.log('模態框位置檢查:', {
+                            模態框尺寸: rect,
+                            視口尺寸: viewport,
+                            垂直位置: rect.y,
+                            水平居中: Math.abs((rect.x + rect.width / 2) - (viewport.width / 2)) < 100,
+                            在視口內: rect.y >= 0 && rect.x >= 0
+                        });
+                        
+                        // 更新狀態顯示
+                        document.getElementById('visibilityStatus').textContent = '可見';
+                        document.getElementById('visibilityStatus').className = 'status pass';
+                        
+                        document.getElementById('positionStatus').textContent = 
+                            (rect.y >= 50 && rect.y <= 200) ? '位置正確' : '位置異常';
+                        document.getElementById('positionStatus').className = 
+                            'status ' + ((rect.y >= 50 && rect.y <= 200) ? 'pass' : 'fail');
+                            
+                    } else {
+                        console.log('未找到模態框元素');
+                        document.getElementById('visibilityStatus').textContent = '未顯示';
+                        document.getElementById('visibilityStatus').className = 'status fail';
+                    }
+                } catch (error) {
+                    console.log('無法訪問iframe內容，可能是同源政策限制');
+                    alert('請手動檢查模態框是否在畫面中央偏上位置顯示');
+                }
+            }
+        }
+        
+        // 定期檢查iframe載入狀態
+        setInterval(() => {
+            const iframe = document.getElementById('testFrame');
+            if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                console.log('iframe已載入完成，可以進行測試');
+            }
+        }, 2000);
+        
+        console.log('🧪 登入模態框修復驗證工具已載入');
+        console.log('📝 請按照測試步驟進行手動驗證');
+    </script>
+</body>
+</html>
