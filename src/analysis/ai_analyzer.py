@@ -48,8 +48,353 @@ class OpenAIAnalyzer:
         if not self.api_key:
             raise ValueError("OpenAI API key is required")
         
+        # 設定模型名稱 - 升級到 GPT-4o 獲得更好的分析能力
+        self.model_name = "gpt-4o"  # 使用最新的 GPT-4o 模型
+        
         openai.api_key = self.api_key
         self.client = openai.OpenAI(api_key=self.api_key)
+
+    async def get_simple_stock_suggestion(self, symbol: str, language: str = "zh") -> AIAnalysisResult:
+        """
+        Get a stock suggestion from AI with real data using Function Calling.
+        """
+        try:
+            # 使用 Function Calling 獲取真實股票數據
+            prompt = self._create_function_calling_prompt(symbol, language)
+            response = await self._get_ai_response_with_functions(prompt, symbol, language)
+            analysis = self._parse_ai_response(symbol, response, 'function_calling')
+            return analysis
+        except Exception as e:
+            logger.error(f"Error in AI function calling analysis: {str(e)}")
+            # 降級到原有的簡化分析
+            return await self._get_simple_fallback_analysis(symbol, language)
+
+    def _create_simple_suggestion_prompt(self, symbol: str, language: str = "zh") -> str:
+        """
+        Create a prompt for a simple stock suggestion.
+        """
+        language_instructions = {
+            "en": "Please respond in English.",
+            "zh": "請用繁體中文回答。",
+            "zh-TW": "請用繁體中文回答。",
+            "zh-CN": "请用简体中文回答。"
+        }
+        lang_instruction = language_instructions.get(language, language_instructions["zh"])
+
+        prompt = f'''
+        你是一位專業的股票技術分析師和投資策略顧問，請為股票代號 {symbol} 提供詳細的投資分析和建議。
+        請搜尋最新可用的市場資訊和公司動態。
+
+        重要提示：{lang_instruction}
+
+        🎯 **分析框架**：
+        1. **技術分析優先**：形態識別（箱型、楔型、三角形、旗型等）
+        2. **買進時機分析**：風險評估、進場點位、停損設定
+        3. **策略規劃**：短期交易、中長期投資建議
+        4. **風險管理**：資金配置、分散投資原則
+
+        📊 **必須包含的分析要素**：
+        - 綜合技術指標（RSI、MACD、移動平均等）
+        - 形態學分析（突破、整理、反轉形態）
+        - 成交量分析與確認訊號
+        - 風險報酬比評估
+        - 具體買賣點位建議
+
+        💡 **投資策略原則**：
+        - 提供具體的數據支撐和邏輯分析
+        - 給出明確的買進建議：價位、停損、目標
+        - 分析不同時間週期的策略選擇
+        - 評估當前市場環境對策略的影響
+        - 始終提醒投資風險，強調資金管理
+
+        請以 JSON 格式回覆，包含以下欄位：
+        - "recommendation": "BUY", "SELL", "HOLD" 之一
+        - "confidence": 0-1 之間的數字，表示信心度
+        - "reasoning": 詳細的投資理由和分析（至少 3-4 句話）
+        - "key_factors": 影響投資決策的 5-7 個關鍵因素陣列
+        - "price_target": 目標價位
+        - "risk_score": 0-1 之間的風險評分
+        - "time_horizon": 建議的投資期間（"短期", "中期", "長期"）
+        - "market_outlook": 對市場前景的看法
+
+        範例格式：
+        {{
+          "recommendation": "BUY",
+          "confidence": 0.8,
+          "reasoning": "技術面分析顯示 {symbol} 正形成上升三角形突破，配合成交量放大確認。RSI 從超賣區域回升，MACD 出現黃金交叉訊號。基本面上公司財報表現穩健，行業前景看好。建議分批進場以降低風險。",
+          "key_factors": [
+            "技術形態：上升三角形突破，目標價位 $160",
+            "RSI 指標從 30 回升至 45，脫離超賣區域", 
+            "MACD 出現黃金交叉，短期動能轉強",
+            "成交量突破平均量 2 倍，確認買盤力道",
+            "支撐位 $140，阻力位已突破 $150",
+            "建議進場價位：$148-152 區間分批買進",
+            "停損設定：跌破 $140 支撐位即停損出場"
+          ],
+          "price_target": 160.0,
+          "stop_loss": 140.0,
+          "entry_price": 150.0,
+          "risk_reward_ratio": 2.0,
+          "risk_score": 0.3,
+          "time_horizon": "中期",
+          "market_outlook": "技術面配合基本面，中期看漲趨勢確立"
+        }}
+        '''
+        return prompt
+    
+    def _create_function_calling_prompt(self, symbol: str, language: str = "zh") -> str:
+        """
+        Create a prompt for function calling stock analysis.
+        """
+        language_instructions = {
+            "en": "Please respond in English.",
+            "zh": "請用繁體中文回答。",
+            "zh-TW": "請用繁體中文回答。",
+            "zh-CN": "请用简体中文回答。"
+        }
+        lang_instruction = language_instructions.get(language, language_instructions["zh"])
+
+        prompt = f'''
+        你是一位專業的股票技術分析師，請嚴格按照以下分析師招數為股票代號 {symbol} 進行深度分析。
+
+        重要提示：{lang_instruction}
+
+        🎯 **分析師招數 - 完整策略**：
+
+        【第一步】獲取真實數據：
+        1. 獲取 {symbol} 的即時報價和基本信息
+        2. 獲取 RSI 技術指標（重點）
+        3. 獲取最近的價格走勢數據
+        4. 如需要，獲取 MACD 和其他指標
+
+        【第二步】均線判斷策略：
+        - 短線操作：觀察 5 日均線
+        - 中期操作：觀察 10 日均線（核心）
+        - 波段操作：觀察 20 日均線
+        - 三隻腳/三隻無奈：均線糾結後突破，方向明確時操作
+        
+        **均線核心法則**：
+        ✅ 站上 10 日均線 → 偏多操作
+        ✅ 回測不破 10 日均線 → 可續漲  
+        ❌ 跌破 10 日均線 → 減碼或觀望
+
+        【第三步】RSI 精準應用：
+        - RSI > 80：超買，觀察是否反轉下跌
+        - RSI < 20：超賣，反彈契機
+        - RSI ≈ 50：趨勢轉折觀察點
+        - RSI 跌破 50：需警惕趨勢轉弱
+        - 多頭：RSI 高檔橫盤震盪
+        - 空頭：RSI 低檔橫盤震盪
+
+        【第四步】避免被雙巴（假突破）：
+        - 確認趨勢線
+        - 注意前波低點/高點
+        - 留意月均線壓力與支撐
+        - 觀察整理區間
+        - 突破需伴隨大量，否則易失敗
+
+        【第五步】三角收斂型態判斷：
+        - 紅 K 突破 → 趨勢向上，可追多
+        - 黑 K 跌破 → 趨勢向下，需避開
+
+        【第六步】混搭策略應用：
+        - 短線：10 日均線 + RSI 
+        - 波段：20 日均線 + 趨勢線
+        - RSI/KD：輔助判斷強弱與轉折
+        - 量能/型態：確認突破有效性
+
+        📊 **分析師核心總結法則**：
+        - 均線：確認趨勢方向
+        - RSI/KD：輔助判斷強弱與轉折  
+        - 量能/型態：確認突破有效性
+
+        💰 **必須提供精確數據**：
+        - 當前價格 vs 5/10/20 日均線位置
+        - RSI 具體數值及其含義
+        - 具體進場價位（基於均線和 RSI）
+        - 具體停損價位（前波低點或均線下緣）
+        - 具體目標價位（等幅上漲或阻力位）
+
+        請先調用函數獲取 {symbol} 的真實數據，然後嚴格按照分析師招數進行專業分析，提供具體的價位建議。
+        '''
+        return prompt
+    
+    async def _get_ai_response_with_functions(self, prompt: str, symbol: str, language: str) -> str:
+        """
+        Get AI response with function calling capability.
+        """
+        try:
+            # 導入 stock functions
+            from src.data.stock_functions import STOCK_FUNCTIONS, FUNCTION_MAP
+            
+            messages = [
+                {"role": "user", "content": prompt}
+            ]
+            
+            # 轉換 functions 格式為 tools 格式
+            tools = []
+            for func in STOCK_FUNCTIONS:
+                tools.append({
+                    "type": "function",
+                    "function": func
+                })
+            
+            # 第一次調用：讓 AI 決定需要哪些數據
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+                temperature=0.7
+            )
+            
+            message = response.choices[0].message
+            messages.append({
+                "role": "assistant",
+                "content": message.content,
+                "tool_calls": message.tool_calls
+            })
+            
+            # 處理工具調用
+            if message.tool_calls:
+                for tool_call in message.tool_calls:
+                    function_name = tool_call.function.name
+                    function_args = json.loads(tool_call.function.arguments)
+                    call_id = tool_call.id
+                    
+                    logger.info(f"AI calling function: {function_name} with args: {function_args}")
+                    
+                    # 調用實際函數
+                    if function_name in FUNCTION_MAP:
+                        try:
+                            function_result = FUNCTION_MAP[function_name](**function_args)
+                            
+                            # 將工具調用結果添加到對話
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": call_id,
+                                "content": json.dumps(function_result, ensure_ascii=False)
+                            })
+                            
+                        except Exception as e:
+                            logger.error(f"Function execution error: {e}")
+                            messages.append({
+                                "role": "tool", 
+                                "tool_call_id": call_id,
+                                "content": json.dumps({"error": str(e)}, ensure_ascii=False)
+                            })
+                
+                # 讓 AI 可能調用更多工具
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    tools=tools,
+                    tool_choice="auto",
+                    temperature=0.7
+                )
+                        
+                # 處理可能的額外工具調用
+                while response.choices[0].message.tool_calls:
+                    message = response.choices[0].message
+                    messages.append({
+                        "role": "assistant", 
+                        "content": message.content,
+                        "tool_calls": message.tool_calls
+                    })
+                    
+                    for tool_call in message.tool_calls:
+                        function_name = tool_call.function.name
+                        function_args = json.loads(tool_call.function.arguments)
+                        call_id = tool_call.id
+                        
+                        if function_name in FUNCTION_MAP:
+                            try:
+                                function_result = FUNCTION_MAP[function_name](**function_args)
+                                messages.append({
+                                    "role": "tool",
+                                    "tool_call_id": call_id,
+                                    "content": json.dumps(function_result, ensure_ascii=False)
+                                })
+                            except Exception as e:
+                                messages.append({
+                                    "role": "tool",
+                                    "tool_call_id": call_id,
+                                    "content": json.dumps({"error": str(e)}, ensure_ascii=False)
+                                })
+                    
+                    response = self.client.chat.completions.create(
+                        model=self.model_name,
+                        messages=messages,
+                        tools=tools,
+                        tool_choice="auto",
+                        temperature=0.7
+                    )
+                
+                # 最終分析請求 - 分析師招數格式
+                final_prompt = f'''
+                現在基於上述獲取的 {symbol} 真實股票數據，請嚴格按照分析師招數進行分析：
+
+                🎯 **必須按照分析師招數分析**：
+
+                1. **均線分析**：說明當前價格 vs 5/10/20日均線的位置關係
+                2. **RSI 判斷**：提供具體 RSI 數值並按照招數解讀（>80超買, <20超賣, ~50轉折）
+                3. **趨勢判斷**：依據均線 + RSI 判斷多空趨勢
+                4. **操作策略**：基於「10日均線為核心」的進出場邏輯
+                5. **風險控管**：設定具體價位（進場、停損、目標）
+
+                📊 **具體價位計算要求**：
+                - 進場價位：基於均線支撐或突破價
+                - 停損價位：前波低點或關鍵均線下緣
+                - 目標價位：等幅上漲或下一阻力/支撐位
+                - 所有價位必須具體到小數點後2位
+
+                💡 **分析推理必須包含**：
+                - 當前 RSI 數值及其招數含義
+                - 價格與關鍵均線（10日線）的關係
+                - 是否符合「站上10日線→偏多」的法則
+                - 量能分析配合突破確認
+
+                請以 JSON 格式回覆，包含：
+                - "recommendation": "BUY", "SELL", "HOLD" 之一
+                - "confidence": 0-1 之間的數字
+                - "reasoning": 基於分析師招數的詳細推理（必須提及具體RSI數值、均線關係）
+                - "key_factors": 按分析師招數列出的關鍵因素（均線+RSI+量能+型態）
+                - "price_target": 具體目標價位（數值）
+                - "stop_loss": 具體停損價位（數值）
+                - "entry_price": 具體建議進場價位（數值）
+                - "risk_reward_ratio": 風險報酬比
+                - "risk_score": 0-1風險評分
+                - "time_horizon": 投資期間（短期/中期/長期）
+                - "market_outlook": 基於技術分析的市場展望
+                '''
+                
+                messages.append({"role": "user", "content": final_prompt})
+                
+                final_response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    temperature=0.7
+                )
+                
+                return final_response.choices[0].message.content
+            
+            return message.content or "無法獲取分析結果"
+            
+        except Exception as e:
+            logger.error(f"Function calling error: {e}")
+            raise
+    
+    async def _get_simple_fallback_analysis(self, symbol: str, language: str) -> AIAnalysisResult:
+        """
+        Get simple fallback analysis when function calling fails.
+        """
+        try:
+            prompt = self._create_simple_suggestion_prompt(symbol, language) 
+            response = await self._get_ai_response(prompt, language)
+            return self._parse_ai_response(symbol, response, 'simple_suggestion')
+        except Exception as e:
+            logger.error(f"Fallback analysis error: {e}")
+            return self._create_fallback_analysis(symbol, 'simple_suggestion', language)
         
     async def analyze_technical_data(
         self, 
@@ -341,7 +686,7 @@ class OpenAIAnalyzer:
         
         lang_instruction = language_instructions.get(language, language_instructions["en"])
         
-        prompt = f"""
+        prompt = f'''
         As an expert technical analyst following professional analyst strategies, analyze the following stock data and provide a trading recommendation.
         
         IMPORTANT: {lang_instruction}
@@ -353,7 +698,7 @@ class OpenAIAnalyzer:
         Volume Ratio: {data_summary.get('volume_ratio', 1):.2f}x
 
         Technical Indicators:
-        """
+        '''
         
         for indicator, value in data_summary.get('indicators', {}).items():
             prompt += f"- {indicator.upper()}: {value:.2f}\n"
@@ -369,22 +714,22 @@ class OpenAIAnalyzer:
         indicators = data_summary.get('indicators', {})
         current_price = data_summary.get('current_price', 0)
         
-        prompt += f"""
+        prompt += f'''
 
         🎯 分析師完整招數 (PROFESSIONAL ANALYST'S COMPLETE TRADING METHODS):
         
         1. 【看均線避免被「雙巴」- 分析師核心策略】:
-        {f"   - 當前價格 ${current_price:.2f} vs 20日均線 ${indicators.get('sma_20', 0):.2f}" if 'sma_20' in indicators else ""}
+        {f"   -當前價格 ${current_price:.2f} vs 20日均線 ${indicators.get('sma_20', 0):.2f}" if 'sma_20' in indicators else ""}
         {"   - 🔍 關鍵檢查: 前高壓力是否轉為支撐？突破是否伴隨大量？"}
-        {f"   - 📊 成交量判斷: 當前 {data_summary.get('volume_ratio', 1):.2f}x → {'低基期爆量=極大利多(否極泰來)' if data_summary.get('volume_ratio', 1) > 2 and current_price < indicators.get('sma_20', current_price) * 1.1 else '高基期爆量=兇多吉少' if data_summary.get('volume_ratio', 1) > 2 else '量能正常'}"}
+        {f"   - 📊 成交量判斷: 當前 {data_summary.get('volume_ratio', 1):.2f}x → " + ("低基期爆量=極大利多(否極泰來)" if data_summary.get('volume_ratio', 1) > 2 and current_price < indicators.get('sma_20', current_price) * 1.1 else "高基期爆量=兇多吉少" if data_summary.get('volume_ratio', 1) > 2 else "量能正常")}
         {"   - 📈 支撐壓力: 成交量大的高點=壓力，低點=支撐"}
         {"   - ⚠️ 套牢成本: 區間內大家套牢在高價位，壓力守不住則後勢堪憂"}
         {"   - 🎯 等幅上漲: 設定停利位置可根據等幅上漲判斷"}
         {"   - 📅 月均線扣抵值: 觀察月均線變化"}
 
         2. 【RSI進階運用 - 避免鈍化陷阱 (分析師精髓)】:
-        {f"   - 當前RSI: {indicators.get('rsi', 'N/A')}" if 'rsi' in indicators else "   - RSI數據不可用"}
-        {f"   - ⚡ RSI鈍化診斷: {'RSI已過熱鈍化' if indicators.get('rsi', 50) > 80 else 'RSI已超賣鈍化' if indicators.get('rsi', 50) < 20 else 'RSI正常範圍'}" if 'rsi' in indicators else ""}
+        {f"   -當前RSI: {indicators.get('rsi', 'N/A')}" if 'rsi' in indicators else "   - RSI數據不可用"}
+        {f"   - ⚡ RSI鈍化診斷: " + ("RSI已過熱鈍化" if indicators.get('rsi', 50) > 80 else "RSI已超賣鈍化" if indicators.get('rsi', 50) < 20 else "RSI正常範圍") if 'rsi' in indicators else ""}
         {f"   - 🚨 **分析師關鍵**: RSI鈍化時改看KD指標 ('羅威KD是歸鎳')" if 'rsi' in indicators and (indicators['rsi'] > 80 or indicators['rsi'] < 20) else ""}
         {f"   - 📉 高檔操作: RSI跌破80即賣出，勿等KD死叉！" if 'rsi' in indicators and indicators['rsi'] > 75 else ""}
         {f"   - 📈 低檔操作: RSI慣性跌破20表示過熱，反彈突破20應回補" if 'rsi' in indicators and indicators['rsi'] < 25 else ""}
@@ -394,7 +739,7 @@ class OpenAIAnalyzer:
         3. 【羅威與分析師混搭策略 - 操作節奏】:
         {"   - 🎯 **核心節奏**: 站上10日均線買進，跌破5日均線賣出"}
         {"   - 🔄 均線糾結: 等待'三陽開泰'確認突破(糾結可能持續很久)"}
-        {f"   - ✅ 波段訊號: 價格{'已站上' if current_price > indicators.get('sma_20', 0) * 0.98 else '未站上'}10日均線 → {'買進訊號' if current_price > indicators.get('sma_20', 0) * 0.98 else '等待時機'}" if 'sma_20' in indicators else ""}
+        {f"   - ✅ 波段訊號: 價格" + ("已站上" if current_price > indicators.get('sma_20', 0) * 0.98 else "未站上") + "10日均線 → " + ("買進訊號" if current_price > indicators.get('sma_20', 0) * 0.98 else "等待時機") if 'sma_20' in indicators else ""}
         {"   - ⚡ 短線操作: 跌破5日均線立即賣出避免套牢 (分析師常用手法)"}
         {"   - 📊 RSI配合: RSI升至80過熱慣性跌破→賣出，等KD上勾(非金叉)再進"}
         {"   - 🔍 綜合工具: 配合趨勢線、區間、月均線扣抵避免被巴來巴去"}
@@ -443,7 +788,7 @@ class OpenAIAnalyzer:
 
         **必須包含精確數值**: 所有價位都要具體到小數點後2位 (例如: 102.50, 98.75)
 
-        Format as JSON: {{
+        Format as JSON: {{ 
           "recommendation": "BUY/SELL/HOLD",
           "confidence": 0.XX,
           "reasoning": "詳細推理...",
@@ -453,13 +798,13 @@ class OpenAIAnalyzer:
           "price_target": XX.XX,
           "risk_score": 0.XX
         }}
-        """
+        '''
         
         return prompt
     
     def _create_chart_analysis_prompt(self, symbol: str, timeframe: str, context: Optional[str]) -> str:
         """Create prompt for chart image analysis."""
-        prompt = f"""
+        prompt = f'''
         As an expert chart analyst, analyze this {timeframe} chart for {symbol}.
 
         Look for:
@@ -474,17 +819,17 @@ class OpenAIAnalyzer:
 
         Provide a trading recommendation with reasoning. Format your response as JSON with keys:
         recommendation, confidence, reasoning, key_factors, price_target, stop_loss, risk_score
-        """
+        '''
         
         return prompt
     
     def _create_sentiment_analysis_prompt(self, sentiment_summary: Dict) -> str:
         """Create prompt for sentiment analysis."""
-        prompt = f"""
+        prompt = f'''
         As a market sentiment expert, analyze the following information for {sentiment_summary['symbol']}:
 
         Recent News Headlines:
-        """
+        '''
         
         for headline in sentiment_summary['news_headlines']:
             prompt += f"- {headline}\n"
@@ -495,7 +840,7 @@ class OpenAIAnalyzer:
         if sentiment_summary['earnings_data']:
             prompt += f"\nEarnings Information: {sentiment_summary['earnings_data']}\n"
         
-        prompt += """
+        prompt += '''
         Analyze the overall market sentiment and provide:
         1. Sentiment-based recommendation (BUY/SELL/HOLD)
         2. Confidence level (0-1)
@@ -503,13 +848,13 @@ class OpenAIAnalyzer:
         4. Risk factors from sentiment perspective
 
         Format as JSON with keys: recommendation, confidence, reasoning, key_factors, risk_score
-        """
+        '''
         
         return prompt
     
     def _create_strategy_prompt(self, combined_data: Dict) -> str:
         """Create prompt for strategy generation."""
-        prompt = f"""
+        prompt = f'''
         Create a comprehensive trading strategy for {combined_data['symbol']} based on:
 
         Technical Analysis:
@@ -534,7 +879,7 @@ class OpenAIAnalyzer:
         6. Timeline and milestones
 
         Format as JSON with keys: recommendation, position_size, entry_strategy, exit_strategy, risk_management, timeline
-        """
+        '''
         
         return prompt
     
@@ -549,7 +894,7 @@ class OpenAIAnalyzer:
             logger.info(f"📝 Prompt includes language instruction for: {language}")
             
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.model_name,  # 使用 GPT-4o 模型
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
@@ -569,20 +914,61 @@ class OpenAIAnalyzer:
     
     def _parse_ai_response(self, symbol: str, response: str, analysis_type: str) -> AIAnalysisResult:
         """Parse AI response into structured result."""
+        logger.info(f"Parsing AI response: {response[:200]}...")  # Log first 200 chars for debugging
+        
         try:
             # Try to parse as JSON first
             if response.strip().startswith('{'):
-                data = json.loads(response)
+                try:
+                    data = json.loads(response.strip())
+                except json.JSONDecodeError:
+                    # Try to find and extract the first valid JSON object
+                    json_start = response.find('{')
+                    bracket_count = 0
+                    json_end = -1
+                    
+                    for i, char in enumerate(response[json_start:], json_start):
+                        if char == '{':
+                            bracket_count += 1
+                        elif char == '}':
+                            bracket_count -= 1
+                            if bracket_count == 0:
+                                json_end = i + 1
+                                break
+                    
+                    if json_end > json_start:
+                        json_str = response[json_start:json_end]
+                        data = json.loads(json_str)
+                    else:
+                        raise json.JSONDecodeError("No valid JSON found", response, 0)
             else:
                 # Extract JSON from text response
                 json_start = response.find('{')
-                json_end = response.rfind('}') + 1
-                if json_start >= 0 and json_end > json_start:
-                    json_str = response[json_start:json_end]
-                    data = json.loads(json_str)
-                else:
-                    # Fallback: parse manually
+                if json_start == -1:
+                    logger.warning("No JSON found in response, using manual parsing")
                     data = self._manual_parse_response(response)
+                else:
+                    # Find matching closing brace
+                    bracket_count = 0
+                    json_end = -1
+                    
+                    for i, char in enumerate(response[json_start:], json_start):
+                        if char == '{':
+                            bracket_count += 1
+                        elif char == '}':
+                            bracket_count -= 1
+                            if bracket_count == 0:
+                                json_end = i + 1
+                                break
+                    
+                    if json_end > json_start:
+                        json_str = response[json_start:json_end]
+                        logger.info(f"Extracted JSON: {json_str}")
+                        data = json.loads(json_str)
+                    else:
+                        # Fallback: parse manually
+                        logger.warning("Could not extract valid JSON, using manual parsing")
+                        data = self._manual_parse_response(response)
             
             # Parse entry price from either 'entry_price' or 'price_target' for backwards compatibility
             entry_price = data.get('entry_price') or data.get('price_target')
