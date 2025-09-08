@@ -2,9 +2,9 @@
 
 ## 🚀 Current Stable Deployment
 
-**版本標記**: `v2.0.0-production`  
-**部署時間**: 2025-09-08  
-**狀態**: ✅ **STABLE - DO NOT MODIFY**
+**版本標記**: `v2.1.0-production` ⬅️ **UPDATED**  
+**部署時間**: 2025-09-08 (Updated: 07:56 UTC)  
+**狀態**: ✅ **STABLE - COMPLETE ANALYST STRATEGIES**
 
 ## 📊 Production Services
 
@@ -15,8 +15,8 @@
 
 ### Backend  
 - **URL**: https://auto-trade-backend-610357573971.asia-northeast1.run.app
-- **Version**: auto-trade-backend-00057-k6p
-- **Features**: ✅ GPT-4o Analysis, ✅ Alpha Vantage API, ✅ Google OAuth
+- **Version**: auto-trade-backend-00058-t4k ⬅️ **UPDATED**
+- **Features**: ✅ GPT-4o Analysis, ✅ Alpha Vantage API, ✅ Google OAuth, ✅ **Complete Analyst Strategies**
 
 ## 🎯 Core Features (Verified Working)
 
@@ -25,11 +25,23 @@
 - **GOOGL**: RSI 84.51 → SELL (extreme overbought)
 - **META**: RSI 52.48 → HOLD (neutral zone)
 
-### ✅ Analyst Strategies Implemented
+### ✅ Complete Analyst Strategies Implemented
+**RSI 精準應用**:
 - RSI 超買/超賣判斷 (>80, <20, ~50)
-- 均線法則 (5/10/20日線策略)  
+- KD 指標搭配 (KD判斷轉折, RSI判斷趨勢)
+- 羅威KD策略 (RSI鈍化時改看KD指標)
+- 高檔操作：RSI跌破80即賣出，勿等KD死叉
+
+**均線判斷策略**:
+- 短線：5日均線 | 中期：10日均線 | 波段：20日均線
+- 核心操作節奏：站上10日均線買進，跌破5日均線賣出
+- 三陽開泰：均線糾結後確認突破
+- 避免被雙巴：假突破防範機制
+
+**風險管理**:
 - 具體價位建議 (進場/停損/目標價)
-- 風險管理與量能分析
+- 量能型態確認突破有效性
+- 綜合工具：趨勢線+區間+月均線扣抵
 
 ### ✅ Authentication
 - Google OAuth 2.0 完整支援
